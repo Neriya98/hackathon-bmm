@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}SecureDeal - Professional Bitcoin Contract Management{% endblock %}
+
+{% block meta_description %}SecureDeal provides enterprise-grade Bitcoin contract management with multi-signature support, secure PSBT handling, and professional workflow tools.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-white overflow-hidden">
+    <div class="max-w-7xl mx-auto">
+        <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+            <svg class="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2" fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <polygon points="50,0 100,0 50,100 0,100"/>
+            </svg>
+            
+            <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+                <div class="sm:text-center lg:text-left">
+                    <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl fade-in">
+                        <span class="block xl:inline">Secure Bitcoin</span>
+                        <span class="block bitcoin-orange xl:inline">Contract Management</span>
+                    </h1>
+                    <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                        Create, sign, and manage multi-signature Bitcoin contracts with enterprise-grade security. 
+                        Professional PSBT handling, secure invitations, and automated fund management.
+                    </p>
+                    <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                        <div class="rounded-md shadow">
+                            <a href="{{ url_for('auth.register') }}" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bitcoin-orange-bg hover:bg-orange-600 md:py-4 md:text-lg md:px-10 transition-colors duration-200">
+                                Get Started
+                            </a>
+                        </div>
+                        <div class="mt-3 sm:mt-0 sm:ml-3">
+                            <a href="{{ url_for('main.docs') }}" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 md:py-4 md:text-lg md:px-10 transition-colors duration-200">
+                                View Documentation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+        <div class="h-56 w-full bg-gradient-to-br from-orange-400 to-orange-600 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
+            <div class="text-center text-white">
+                <svg class="mx-auto h-24 w-24 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                </svg>
+                <h3 class="text-2xl font-bold">Bitcoin Contracts Made Simple</h3>
+                <p class="mt-2 text-orange-100">Professional tools for the Bitcoin economy</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:text-center">
+            <h2 class="text-base bitcoin-orange font-semibold tracking-wide uppercase">Features</h2>
+            <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                Everything you need for Bitcoin contracts
+            </p>
+            <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+                Built for professionals who need reliable, secure, and scalable Bitcoin contract management.
+            </p>
+        </div>
+        
+        <div class="mt-10">
+            <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+                <!-- Feature 1 -->
+                <div class="relative fade-in">
+                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bitcoin-orange-bg text-white">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-16">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Enterprise Security</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Multi-signature contracts with Taproot support, secure PSBT handling, and enterprise-grade encryption.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="relative fade-in">
+                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bitcoin-orange-bg text-white">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-16">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Team Collaboration</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Invite team members, manage permissions, and collaborate on contracts with secure email invitations.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="relative fade-in">
+                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bitcoin-orange-bg text-white">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-16">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Automated Workflows</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Automated signature collection, timeout management, and fund release with customizable policies.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="relative fade-in">
+                    <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bitcoin-orange-bg text-white">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-16">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">High Performance</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Rust-powered Bitcoin operations for maximum speed and reliability in production environments.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="gradient-bg">
+    <div class="max-w-2xl mx-auto text-center py-16 px-4 sm:py-20 sm:px-6 lg:px-8">
+        <h2 class="text-3xl font-extrabold text-white sm:text-4xl">
+            <span class="block">Ready to secure your Bitcoin contracts?</span>
+        </h2>
+        <p class="mt-4 text-lg leading-6 text-indigo-200">
+            Join professionals who trust SecureDeal for their Bitcoin contract management needs.
+        </p>
+        <a href="{{ url_for('auth.register') }}" class="mt-8 w-full inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 sm:w-auto transition-colors duration-200">
+            Start Free Trial
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Animate features on scroll
+    document.addEventListener('DOMContentLoaded', function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeIn 0.6s ease-out forwards';
+                }
+            });
+        });
+        
+        document.querySelectorAll('.fade-in').forEach((el) => {
+            observer.observe(el);
+        });
+    });
+</script>
+{% endblock %}

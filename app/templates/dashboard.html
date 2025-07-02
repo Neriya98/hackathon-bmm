@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6" id="dashboard-content" style="display: none;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p class="mt-2 text-gray-600">Welcome back, <span id="user-email">Loading...</span>. Here's what's happening with your contracts.</p>
+        </div>
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500">Active Contracts</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="stat-active-contracts">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500">Pending Signatures</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="stat-pending-signatures">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500">Total Invitations</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="stat-total-invitations">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500">Total Volume</p>
+                        <p class="text-2xl font-semibold text-gray-900" id="stat-total-volume">0 BTC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Quick Actions</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <a href="/contracts/create" class="quick-action-card group">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Create Contract</p>
+                                <p class="text-sm text-gray-500">Start a new Bitcoin contract</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="/invitations" class="quick-action-card group">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">View Invitations</p>
+                                <p class="text-sm text-gray-500">Manage pending invitations</p>
+                            </div>
+                        </div>
+                    </a>
+                    
+                    <a href="/docs" class="quick-action-card group">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">API Documentation</p>
+                                <p class="text-sm text-gray-500">Learn about our APIs</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Recent Contracts -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Recent Contracts</h2>
+                    <a href="/contracts" class="text-sm text-blue-600 hover:text-blue-500">View all</a>
+                </div>
+                <div class="divide-y divide-gray-200" id="recent-contracts">
+                    <div class="px-6 py-8 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No contracts yet</h3>
+                        <p class="mt-1 text-sm text-gray-500">Get started by creating your first contract.</p>
+                        <div class="mt-6">
+                            <a href="/contracts/create" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                                <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Create Contract
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Invitations -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Recent Invitations</h2>
+                    <a href="/invitations" class="text-sm text-blue-600 hover:text-blue-500">View all</a>
+                </div>
+                <div class="divide-y divide-gray-200" id="recent-invitations">
+                    <div class="px-6 py-8 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No invitations yet</h3>
+                        <p class="mt-1 text-sm text-gray-500">Invitations will appear here when available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading screen -->
+<div id="loading-screen" class="min-h-screen flex items-center justify-center bg-gray-50">
+    <div class="text-center">
+        <div class="w-16 h-16 border-4 border-orange-300 border-t-orange-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-gray-600">Loading dashboard...</p>
+    </div>
+</div>
+
+<script>
+// Check authentication and load dashboard data
+document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+        // No token, redirect to login
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    // Load dashboard data
+    loadDashboardData(token);
+});
+
+async function loadDashboardData(token) {
+    try {
+        // Get user profile
+        const userResponse = await fetch('/api/auth/profile', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!userResponse.ok) {
+            throw new Error('Failed to load user profile');
+        }
+        
+        const userData = await userResponse.json();
+        document.getElementById('user-email').textContent = userData.email;
+        
+        // Get dashboard stats
+        const statsResponse = await fetch('/api/contracts/dashboard/stats', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (statsResponse.ok) {
+            const stats = await statsResponse.json();
+            updateStats(stats);
+        }
+        
+        // Get recent contracts
+        const contractsResponse = await fetch('/api/contracts', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (contractsResponse.ok) {
+            const contracts = await contractsResponse.json();
+            updateRecentContracts(contracts.contracts || []);
+        }
+        
+        // Show dashboard
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        // Redirect to login on error
+        localStorage.removeItem('token');
+        window.location.href = '/auth/login';
+    }
+}
+
+function updateStats(stats) {
+    document.getElementById('stat-active-contracts').textContent = stats.active_contracts || 0;
+    document.getElementById('stat-pending-signatures').textContent = stats.pending_signatures || 0;
+    document.getElementById('stat-total-invitations').textContent = stats.total_invitations || 0;
+    document.getElementById('stat-total-volume').textContent = (stats.total_volume_btc || 0).toFixed(8) + ' BTC';
+}
+
+function updateRecentContracts(contracts) {
+    const container = document.getElementById('recent-contracts');
+    
+    if (contracts.length === 0) {
+        return; // Keep the empty state
+    }
+    
+    container.innerHTML = contracts.slice(0, 5).map(contract => `
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">${contract.title || 'Untitled Contract'}</p>
+                    <p class="text-sm text-gray-500">${new Date(contract.created_at).toLocaleDateString()}</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getStatusColor(contract.status)}-100 text-${getStatusColor(contract.status)}-800">
+                        ${contract.status}
+                    </span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getStatusColor(status) {
+    switch(status) {
+        case 'active': return 'green';
+        case 'pending': return 'yellow';
+        case 'completed': return 'blue';
+        case 'cancelled': return 'red';
+        default: return 'gray';
+    }
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/auth/login';
+}
+</script>
+
+<style>
+.quick-action-card {
+    display: block;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.quick-action-card:hover {
+    border-color: #d1d5db;
+    background-color: #f9fafb;
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.bitcoin-orange-bg {
+    background-color: #f97316;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-refresh dashboard data every 30 seconds
+    setInterval(() => {
+        // Only refresh if the page is visible
+        if (!document.hidden) {
+            window.location.reload();
+        }
+    }, 30000);
+    
+    // Animate cards on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.fade-in');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+
+<style>
+.quick-action-card {
+    display: block;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.quick-action-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.contract-status-badge, .invitation-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.contract-status-pending, .invitation-status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.contract-status-active, .invitation-status-accepted {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.contract-status-completed {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.contract-status-expired, .invitation-status-expired {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-out;
+}
+</style>
+{% endblock %}

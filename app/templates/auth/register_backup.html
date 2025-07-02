@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <div class="flex justify-center">
+                <div class="w-12 h-12 bitcoin-orange-bg rounded-lg flex items-center justify-center">
+                    <span class="text-2xl font-bold text-white">₿</span>
+                </div>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Create your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Or
+                <a href="/auth/login" class="font-medium text-orange-600 hover:text-orange-500">
+                    sign in to your existing account
+                </a>
+            </p>
+        </div>
+                <a href="{{ url_for('auth.login') }}" class="font-medium bitcoin-orange hover:text-orange-600 transition-colors">
+                    sign in to existing account
+                </a>
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="POST" x-data="{ loading: false, passwordStrength: 0 }" @submit="loading = true">
+            {{ form.hidden_tag() }}
+            <div class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                    {{ form.email(class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.email.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    {{ form.password(class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm", placeholder="Create a strong password", "@input"="checkPasswordStrength($event.target.value)") }}
+                    {% if form.password.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Password Strength Indicator -->
+                    <div class="mt-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex-1">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full transition-all duration-300" 
+                                         :class="{
+                                             'bg-red-500 w-1/4': passwordStrength === 1,
+                                             'bg-yellow-500 w-2/4': passwordStrength === 2,
+                                             'bg-blue-500 w-3/4': passwordStrength === 3,
+                                             'bg-green-500 w-full': passwordStrength === 4
+                                         }"></div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500" 
+                                  x-text="{
+                                      0: '',
+                                      1: 'Weak',
+                                      2: 'Fair', 
+                                      3: 'Good',
+                                      4: 'Strong'
+                                  }[passwordStrength]"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    {{ form.password2(class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm", placeholder="Confirm your password") }}
+                    {% if form.password2.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.password2.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                {{ form.accept_terms(class="h-4 w-4 bitcoin-orange-bg focus:ring-orange-500 border-gray-300 rounded") }}
+                <label for="accept_terms" class="ml-2 block text-sm text-gray-900">
+                    I agree to the 
+                    <a href="#" class="bitcoin-orange hover:text-orange-600">Terms of Service</a> 
+                    and 
+                    <a href="#" class="bitcoin-orange hover:text-orange-600">Privacy Policy</a>
+                </label>
+            </div>
+            {% if form.accept_terms.errors %}
+                <div class="text-sm text-red-600">
+                    {% for error in form.accept_terms.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div>
+                <button type="submit" 
+                        :disabled="loading"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bitcoin-orange-bg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-orange-300 group-hover:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                        </svg>
+                    </span>
+                    <span x-show="!loading">Create Account</span>
+                    <span x-show="loading" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating account...
+                    </span>
+                </button>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">
+                            Account Verification Required
+                        </h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>After registration, please check your email for a verification link to activate your account.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        
+        // Cap at 4 for display purposes
+        return Math.min(strength, 4);
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Focus on first input
+        const firstInput = document.querySelector('input[type="email"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+        
+        // Add fade-in animation
+        const container = document.querySelector('.max-w-md');
+        if (container) {
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                container.style.transition = 'all 0.5s ease-out';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "contractType": "SaleContract",
+  "seller": {
+    "name": "",
+    "address": "",
+    "phone": ""
+  },
+  "buyer": {
+    "name": "",
+    "address": "",
+    "phone": ""
+  },
+  "item": {
+    "description": "",
+    "id": "",
+    "condition": ""
+  },
+  "terms": {
+    "salePrice": 0,
+    "depositAmount": 0,
+    "paymentMethod": "",
+    "deliveryDate": ""
+  },
+  "smartContract": {
+    "address": "",
+    "network": "Rootstock Testnet"
+  }
+}

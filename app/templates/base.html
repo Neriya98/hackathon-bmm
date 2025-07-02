@@ -57,9 +57,7 @@
 <body class="h-full">
     <div id="app" class="min-h-full">
         <!-- Navigation -->
-        {% if current_user and current_user.is_authenticated %}
-            {% include 'partials/navbar.html' %}
-        {% endif %}
+        {% include 'partials/navbar.html' %}
         
         <!-- Flash Messages -->
         {% include 'partials/flash_messages.html' %}

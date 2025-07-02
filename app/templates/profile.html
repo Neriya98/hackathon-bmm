@@ -76,7 +76,6 @@
                         <div class="flex-shrink-0">
                             <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                            </svg>
                         </div>
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-blue-800">Security Information</h3>
@@ -141,6 +140,15 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.email) {
+        alert('Please log in to view your profile.');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    console.log("Profile page loaded for user:", user.email);
     loadUserProfile();
     loadContractStatistics();
 });
@@ -149,18 +157,27 @@ function loadUserProfile() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
     
+    console.log("User data from localStorage:", user);
+    console.log("Registered user data:", registeredUser);
+    
     // Use registered user data if available, otherwise fallback to user data
     const userData = registeredUser.email ? registeredUser : user;
     
-    // Display user information
-    document.getElementById('user-name').textContent = userData.name || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Not specified';
+    // Display user information with fallbacks for different property names
+    const firstName = userData.firstName || userData.first_name || '';
+    const lastName = userData.lastName || userData.last_name || '';
+    const fullName = userData.name || `${firstName} ${lastName}`.trim();
+    
+    document.getElementById('user-name').textContent = fullName || 'Not specified';
     document.getElementById('user-email').textContent = userData.email || 'Not specified';
     
     // Display user type with badge
     const userTypeDiv = document.getElementById('user-type');
-    const userType = userData.userType || 'user';
-    const typeLabel = userType === 'notaire' ? 'Notaire' : 'Regular User';
-    const typeColor = userType === 'notaire' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+    const userType = userData.userType || userData.role || userData.type || 'user';
+    const typeLabel = userType === 'notaire' ? 'Notaire' : 
+                      userType === 'admin' ? 'Administrator' : 'Regular User';
+    const typeColor = userType === 'notaire' ? 'bg-purple-100 text-purple-800' : 
+                      userType === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
     
     userTypeDiv.innerHTML = `
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeColor}">
@@ -168,49 +185,77 @@ function loadUserProfile() {
         </span>
     `;
     
-    // Display member since
-    const memberSince = userData.createdAt || userData.registeredAt || new Date().toISOString();
-    document.getElementById('member-since').textContent = new Date(memberSince).toLocaleDateString();
+    // Display member since with more robust date handling
+    let memberSinceDate;
+    try {
+        const memberSince = userData.createdAt || userData.registeredAt || userData.created_at || userData.registered_at || new Date().toISOString();
+        memberSinceDate = new Date(memberSince).toLocaleDateString();
+    } catch (e) {
+        console.error("Error parsing date:", e);
+        memberSinceDate = 'Unknown';
+    }
+    document.getElementById('member-since').textContent = memberSinceDate;
     
-    // Display Bitcoin public key
-    const bitcoinKey = userData.bitcoinPublicKey || 'No Bitcoin public key configured';
-    document.getElementById('bitcoin-public-key').value = bitcoinKey;
+    // Display Bitcoin public key with fallbacks for different property names
+    const bitcoinKey = userData.bitcoinPublicKey || userData.bitcoin_public_key || userData.publicKey || userData.public_key || '';
+    document.getElementById('bitcoin-public-key').value = bitcoinKey || 'No Bitcoin public key configured';
 }
 
 function loadContractStatistics() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
-    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
-    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
-    
-    // Contracts where user is involved (created by user or invited to sign)
-    const userInvolvedContracts = userContracts.concat(
-        allInvitations
-            .filter(inv => inv.email === user.email)
-            .map(inv => ({ id: inv.contractId, fromInvitation: true }))
-    );
-    
-    // Remove duplicates
-    const uniqueContracts = userInvolvedContracts.filter((contract, index, self) => 
-        index === self.findIndex(c => c.id === contract.id)
-    );
-    
-    // Contracts signed by user
-    const userSignatures = allSignatures.filter(sig => sig.signerEmail === user.email);
-    
-    // Contracts created by user
-    const createdContracts = userContracts.length;
-    
-    // Pending contracts (invitations not yet signed)
-    const pendingInvitations = allInvitations.filter(inv => 
-        inv.email === user.email && inv.status !== 'signed'
-    );
-    
-    // Update statistics
-    document.getElementById('total-contracts').textContent = uniqueContracts.length;
-    document.getElementById('signed-contracts').textContent = userSignatures.length;
-    document.getElementById('pending-contracts').textContent = pendingInvitations.length;
-    document.getElementById('created-contracts').textContent = createdContracts;
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!user.email) {
+            console.warn("No user email found for loading statistics");
+            return;
+        }
+        
+        const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+        const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+        const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+        
+        console.log("Loading statistics for user:", user.email);
+        console.log("User contracts:", userContracts.length);
+        console.log("All signatures:", allSignatures.length);
+        console.log("All invitations:", allInvitations.length);
+        
+        // Contracts where user is involved (created by user or invited to sign)
+        const userInvolvedContracts = userContracts.concat(
+            allInvitations
+                .filter(inv => inv.recipient_email === user.email || inv.email === user.email)
+                .map(inv => ({ id: inv.contractId, fromInvitation: true }))
+        );
+        
+        // Remove duplicates
+        const uniqueContracts = userInvolvedContracts.filter((contract, index, self) => 
+            index === self.findIndex(c => c.id === contract.id)
+        );
+        
+        // Contracts signed by user
+        const userSignatures = allSignatures.filter(sig => 
+            sig.signerEmail === user.email || sig.email === user.email
+        );
+        
+        // Contracts created by user
+        const createdContracts = userContracts.filter(c => 
+            c.creator_email === user.email || c.creator_id === user.id
+        );
+        
+        // Pending contracts (invitations not yet signed)
+        const pendingInvitations = allInvitations.filter(inv => 
+            (inv.recipient_email === user.email || inv.email === user.email) && 
+            inv.status !== 'signed'
+        );
+        
+        // Update statistics
+        document.getElementById('total-contracts').textContent = uniqueContracts.length;
+        document.getElementById('signed-contracts').textContent = userSignatures.length;
+        document.getElementById('pending-contracts').textContent = pendingInvitations.length;
+        document.getElementById('created-contracts').textContent = createdContracts.length;
+    } catch (e) {
+        console.error("Error loading contract statistics:", e);
+        showNotification('Error loading contract statistics', 'error');
+    }
 }
 
 function copyBitcoinKey() {
@@ -229,20 +274,36 @@ function updateBitcoinKey() {
     if (newKey && newKey !== currentKey) {
         // Validate the key format
         if (isValidBitcoinPublicKey(newKey)) {
-            // Update in localStorage
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
-            
-            user.bitcoinPublicKey = newKey;
-            registeredUser.bitcoinPublicKey = newKey;
-            
-            localStorage.setItem('user', JSON.stringify(user));
-            localStorage.setItem('registeredUser', JSON.stringify(registeredUser));
-            
-            // Update display
-            document.getElementById('bitcoin-public-key').value = newKey;
-            
-            showNotification('Bitcoin public key updated successfully!', 'success');
+            try {
+                // Update all possible user data storages
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
+                
+                // Update all possible key properties to ensure compatibility
+                user.bitcoinPublicKey = newKey;
+                user.bitcoin_public_key = newKey;
+                user.publicKey = newKey;
+                user.public_key = newKey;
+                
+                if (registeredUser.email) {
+                    registeredUser.bitcoinPublicKey = newKey;
+                    registeredUser.bitcoin_public_key = newKey;
+                    registeredUser.publicKey = newKey;
+                    registeredUser.public_key = newKey;
+                    localStorage.setItem('registeredUser', JSON.stringify(registeredUser));
+                }
+                
+                localStorage.setItem('user', JSON.stringify(user));
+                console.log("Updated user data:", user);
+                
+                // Update display
+                document.getElementById('bitcoin-public-key').value = newKey;
+                
+                showNotification('Bitcoin public key updated successfully!', 'success');
+            } catch (e) {
+                console.error("Error updating Bitcoin key:", e);
+                showNotification('Error updating Bitcoin public key. Please try again.', 'error');
+            }
         } else {
             showNotification('Invalid Bitcoin public key format. Please enter a valid key.', 'error');
         }

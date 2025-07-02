@@ -45,6 +45,19 @@
                 </div>
             </div>
             
+            <!-- Quick Skip Button -->
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 class="text-sm font-medium text-green-800">Testing Shortcut</h3>
+                <p class="text-xs text-green-700 mb-2">Skip the invitation process and generate test data automatically</p>
+                <button onclick="createDummyInvitationsAndProceed()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Skip to Signing Page
+                </button>
+            </div>
+            
             <form id="invitation-form" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -88,6 +101,19 @@
                 <h2 class="text-xl font-semibold text-gray-900">Sent Invitations</h2>
                 <span class="text-sm text-gray-500" id="invitation-count">0 invitations</span>
             </div>
+            
+            <!-- Auto-sign all button for all contracts -->
+            <div id="auto-sign-section" class="mb-4 hidden">
+                <button onclick="autoSignAllInvitations()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                    </svg>
+                    Auto-Sign All Invitations
+                </button>
+                <p class="text-xs text-purple-600 mt-1">This will automatically sign all invitations for testing purposes</p>
+            </div>
+            
             <div id="sent-invitations">
                 <!-- Sent invitations will be populated by JavaScript -->
             </div>
@@ -135,6 +161,13 @@ let sentInvitations = [];
 document.addEventListener('DOMContentLoaded', function() {
     loadContract();
     loadSentInvitations();
+    
+    // Show auto-sign section for all contracts (for testing purposes)
+    setTimeout(() => {
+        if (currentContract) {
+            document.getElementById('auto-sign-section').classList.remove('hidden');
+        }
+    }, 500); // Small delay to ensure contract data is loaded
 });
 
 function loadContract() {
@@ -309,6 +342,17 @@ document.getElementById('invitation-form').addEventListener('submit', function(e
             
             // Update sent invitations
             sentInvitations.push(invitationData);
+            
+            // Auto-sign if it's a rental contract
+            if (currentContract.contract_type === 'rental') {
+                const wasAutoSigned = autoSignRentalContractInvitation(invitationData);
+                if (wasAutoSigned) {
+                    // Update the status displayed in the invitation list
+                    invitationData.status = 'signed';
+                    showNotification(`Invitation to ${invitationData.email} was automatically signed for testing!`, 'success');
+                }
+            }
+            
             displaySentInvitations();
             
             // Reset form
@@ -379,13 +423,71 @@ function getStatusColor(status) {
 }
 
 function proceedToSigning() {
-    if (sentInvitations.length === 0) {
-        alert('Please send at least one invitation before proceeding to signing.');
-        return;
+    // Check if there are any invitations
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const contractInvitations = allInvitations.filter(inv => inv.contractId === currentContract.id);
+    
+    if (contractInvitations.length === 0) {
+        // Ask if the user wants to continue without invitations
+        if (confirm('No invitations have been sent. Do you want to create dummy invitations and proceed?')) {
+            createDummyInvitationsAndProceed();
+            return;
+        }
     }
     
     // Redirect to signing page
     window.location.href = `/contracts/sign?contractId=${currentContract.id}`;
+}
+
+// Function to create dummy invitations and proceed to signing
+function createDummyInvitationsAndProceed() {
+    if (!currentContract) {
+        showNotification('Contract data not loaded. Please refresh the page.', 'error');
+        return;
+    }
+    
+    // Clear existing invitations for this contract
+    let allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    allInvitations = allInvitations.filter(inv => inv.contractId !== currentContract.id);
+    
+    // Create 2 dummy invitations
+    const dummyInvitations = [
+        {
+            id: 'invitation_' + Date.now() + '_1',
+            contractId: currentContract.id,
+            email: 'participant1@example.com',
+            role: 'signer',
+            message: 'Please sign this contract',
+            status: 'sent',
+            sentAt: new Date().toISOString()
+        },
+        {
+            id: 'invitation_' + Date.now() + '_2',
+            contractId: currentContract.id,
+            email: 'participant2@example.com',
+            role: 'signer',
+            message: 'Please sign this contract',
+            status: 'sent',
+            sentAt: new Date().toISOString()
+        }
+    ];
+    
+    // Add dummy invitations
+    allInvitations = [...allInvitations, ...dummyInvitations];
+    localStorage.setItem('contractInvitations', JSON.stringify(allInvitations));
+    
+    // Auto-sign all invitations
+    dummyInvitations.forEach(invitation => {
+        autoSignRentalContractInvitation(invitation);
+    });
+    
+    showNotification('Created and signed dummy invitations for testing', 'success');
+    
+    // Wait a bit to show the notification before redirecting
+    setTimeout(() => {
+        // Redirect to signing page
+        window.location.href = `/contracts/sign?contractId=${currentContract.id}`;
+    }, 1000);
 }
 
 function copyInvitationLink(invitationId) {
@@ -441,6 +543,80 @@ function resendInvitation(invitationId) {
     alert(`Invitation resent to ${invitation.email}!`);
 }
 
+// Function to auto-sign a contract invitation
+function autoSignRentalContractInvitation(invitation) {
+    // For simplicity in testing, allow auto-signing for any contract type
+    // Comment for original behavior: if (currentContract.contract_type !== 'rental') return false;
+    
+    console.log("Auto-signing contract invitation:", invitation);
+    
+    // Create a signature record
+    const signatureData = {
+        id: 'signature_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8),
+        contractId: invitation.contractId,
+        invitationId: invitation.id,
+        signerEmail: invitation.email,
+        signerName: invitation.email.split('@')[0], // Use email username as name
+        bitcoinPublicKey: "02" + Array(64).fill().map(() => "0123456789ABCDEF"[Math.floor(Math.random() * 16)]).join(''), // Random fake key
+        signedAt: new Date().toISOString(),
+        signatureMessage: `Auto-signed rental contract: ${currentContract.title}`,
+        signatureHash: Math.random().toString(36).substring(2, 15),
+        signatureType: 'bitcoin_public_key'
+    };
+    
+    // Save signature to localStorage
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    allSignatures.push(signatureData);
+    localStorage.setItem('contractSignatures', JSON.stringify(allSignatures));
+    
+    // Update invitation status
+    invitation.status = 'signed';
+    invitation.signedAt = signatureData.signedAt;
+    
+    // Update the invitation in localStorage
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const invIndex = allInvitations.findIndex(inv => inv.id === invitation.id);
+    if (invIndex !== -1) {
+        allInvitations[invIndex] = invitation;
+        localStorage.setItem('contractInvitations', JSON.stringify(allInvitations));
+    }
+    
+    console.log("Auto-signed invitation:", invitation);
+    console.log("Created signature:", signatureData);
+    
+    return true;
+}
+
+// Auto-sign all invitations for rental contracts
+function autoSignAllInvitations() {
+    if (currentContract.contract_type !== 'rental') {
+        alert('This feature is only available for rental contracts.');
+        return;
+    }
+    
+    if (sentInvitations.length === 0) {
+        alert('No invitations sent yet.');
+        return;
+    }
+    
+    if (!confirm('This will automatically sign all sent invitations for this contract. Proceed?')) {
+        return;
+    }
+    
+    let signedCount = 0;
+    
+    sentInvitations.forEach(invitation => {
+        const wasAutoSigned = autoSignRentalContractInvitation(invitation);
+        if (wasAutoSigned) {
+            signedCount++;
+        }
+    });
+    
+    displaySentInvitations();
+    
+    showNotification(`Auto-signed ${signedCount} invitation${signedCount !== 1 ? 's' : ''} successfully!`, 'success');
+}
+
 function copyQuickShareLink() {
     const linkInput = document.getElementById('quick-share-link');
     const link = linkInput.value;
@@ -493,6 +669,49 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }
     }, 5000);
+}
+
+// Function to auto-sign all invitations for a contract
+function autoSignAllInvitations() {
+    // Allow for all contract types (for testing purposes)
+    if (!currentContract) {
+        showNotification('No contract data found', 'error');
+        return;
+    }
+    
+    // Get all invitations for this contract
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const contractInvitations = allInvitations.filter(inv => inv.contractId === currentContract.id);
+    
+    if (contractInvitations.length === 0) {
+        showNotification('No invitations found to auto-sign', 'info');
+        return;
+    }
+    
+    // Auto-sign each invitation
+    let signedCount = 0;
+    
+    contractInvitations.forEach(invitation => {
+        // Skip already signed invitations
+        if (invitation.status === 'signed') {
+            return;
+        }
+        
+        // Auto-sign the invitation
+        if (autoSignRentalContractInvitation(invitation)) {
+            signedCount++;
+        }
+    });
+    
+    // Refresh the displayed invitations
+    displaySentInvitations();
+    
+    // Show success message
+    if (signedCount > 0) {
+        showNotification(`Successfully auto-signed ${signedCount} invitation(s)!`, 'success');
+    } else {
+        showNotification('No new invitations to sign. All invitations may already be signed.', 'info');
+    }
 }
 </script>
 {% endblock %}

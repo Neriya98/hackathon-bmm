@@ -167,17 +167,9 @@ def reset_password():
 
 
 @bp.route('/profile')
-@jwt_required()
 def profile():
-    """Page de profil utilisateur"""
-    
-    user_id = get_jwt_identity()
-    user = User.find_by_public_id(user_id)
-    
-    if not user:
-        return redirect(url_for('auth.login'))
-    
-    return render_template('profile.html', user=user)
+    """Page de profil utilisateur - authentication handled by JavaScript"""
+    return render_template('profile.html')
 
 
 @bp.route('/docs')

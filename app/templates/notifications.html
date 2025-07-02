@@ -90,7 +90,7 @@ function generateNotifications() {
             
             if (!existingNotification) {
                 const contract = userContracts.find(c => c.id === invitation.contractId) || 
-                                { title: 'Contract', id: invitation.contractId };
+                                { title: `Contract ${invitation.contractId}`, id: invitation.contractId };
                 
                 notifications.push({
                     id: 'notif_' + Date.now() + '_' + Math.random(),
@@ -158,6 +158,47 @@ function generateNotifications() {
                 });
             }
         }
+    });
+    
+    // Check for download notifications (for all signers when contract is completed)
+    const userSignatures = allSignatures.filter(sig => sig.signerEmail === user.email);
+    userSignatures.forEach(signature => {
+        const contract = userContracts.find(c => c.id === signature.contractId) || 
+                        { title: `Contract ${signature.contractId}`, id: signature.contractId };
+        const contractInvitations = allInvitations.filter(inv => inv.contractId === signature.contractId);
+        const contractSignatures = allSignatures.filter(sig => sig.contractId === signature.contractId);
+        
+        // If contract is fully signed
+        if (contractSignatures.length >= Math.max(contractInvitations.length, 1)) {
+            const existingNotification = notifications.find(notif => 
+                notif.type === 'download_available' && 
+                notif.contractId === signature.contractId &&
+                notif.targetEmail === user.email
+            );
+            
+            if (!existingNotification) {
+                notifications.push({
+                    id: 'notif_download_' + Date.now() + '_' + Math.random(),
+                    type: 'download_available',
+                    title: 'Contract Ready for Download',
+                    message: `The contract "${contract.title}" has been fully signed and is ready for download`,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    contractId: signature.contractId,
+                    targetEmail: user.email,
+                    actionUrl: `/contracts/preview?contractId=${signature.contractId}`
+                });
+            }
+        }
+    });
+    
+    // Filter notifications for current user
+    notifications = notifications.filter(notif => {
+        // Show notification if:
+        // 1. It's an invitation for this user
+        // 2. It's a contract completion/signature for user's contracts
+        // 3. It's a download notification targeted at this user
+        return !notif.targetEmail || notif.targetEmail === user.email;
     });
     
     // Save updated notifications
@@ -242,6 +283,11 @@ function getNotificationIcon(type) {
         'contract_completed': `
             <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        `,
+        'download_available': `
+            <svg class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
         `
     };

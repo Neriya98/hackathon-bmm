@@ -8,7 +8,7 @@
                         <div class="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
                             <span class="text-white font-bold">₿</span>
                         </div>
-                        <span class="text-xl font-bold text-gray-900">SecureDeal</span>
+                        <span class="text-xl font-bold text-gray-900">DealSure</span>
                     </a>
                 </div>
                 
@@ -81,6 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update notification badge
     updateNotificationBadge();
     
+    // Refresh notification badge every 30 seconds
+    setInterval(updateNotificationBadge, 30000);
+    
     // Close dropdown when clicking outside
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('profile-dropdown');
@@ -93,6 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function updateNotificationBadge() {
+    // Regenerate notifications to catch new ones
+    generateNotificationsForBadge();
+    
     const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
     const unreadCount = notifications.filter(n => !n.read).length;
     const badge = document.getElementById('notification-badge');
@@ -105,6 +111,70 @@ function updateNotificationBadge() {
             badge.classList.add('hidden');
         }
     }
+}
+
+function generateNotificationsForBadge() {
+    // Simplified notification generation for badge updates
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    let notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    
+    // Check for new invitations for current user
+    const userInvitations = allInvitations.filter(inv => inv.email === user.email);
+    userInvitations.forEach(invitation => {
+        const exists = notifications.some(notif => 
+            notif.type === 'invitation' && notif.invitationId === invitation.id
+        );
+        
+        if (!exists) {
+            const contract = userContracts.find(c => c.id === invitation.contractId) || 
+                            { title: `Contract ${invitation.contractId}` };
+            
+            notifications.push({
+                id: 'notif_inv_' + Date.now() + '_' + Math.random(),
+                type: 'invitation',
+                title: 'New Contract Invitation',
+                message: `You've been invited to sign "${contract.title}"`,
+                timestamp: invitation.sentAt,
+                read: false,
+                invitationId: invitation.id,
+                contractId: invitation.contractId,
+                actionUrl: `/contracts/sign?contractId=${invitation.contractId}&invitationId=${invitation.id}`
+            });
+        }
+    });
+    
+    // Check for completed contracts (user's contracts)
+    userContracts.forEach(contract => {
+        const contractInvitations = allInvitations.filter(inv => inv.contractId === contract.id);
+        const contractSignatures = allSignatures.filter(sig => sig.contractId === contract.id);
+        
+        if (contractInvitations.length > 0 && 
+            contractSignatures.length >= contractInvitations.length &&
+            contractInvitations.every(inv => inv.status === 'signed')) {
+            
+            const exists = notifications.some(notif => 
+                notif.type === 'contract_completed' && notif.contractId === contract.id
+            );
+            
+            if (!exists) {
+                notifications.push({
+                    id: 'notif_comp_' + Date.now() + '_' + Math.random(),
+                    type: 'contract_completed',
+                    title: 'Contract Fully Signed',
+                    message: `"${contract.title}" has been signed by all parties`,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    contractId: contract.id,
+                    actionUrl: `/contracts/preview?contractId=${contract.id}`
+                });
+            }
+        }
+    });
+    
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
 }
 
 // Toggle profile dropdown

@@ -389,6 +389,12 @@ def create_timelock():
     return render_template('contracts/timelock.html')
 
 
+@bp.route('/contracts/create/savings')
+def create_savings():
+    """Savings contract form"""
+    return render_template('contracts/savings.html')
+
+
 @bp.route('/contracts/preview')
 def preview_contract():
     """Contract preview page"""
@@ -396,15 +402,22 @@ def preview_contract():
 
 
 @bp.route('/contracts/invite')
-def invite_participants():
+@bp.route('/contracts/<contract_id>/invite')
+def invite_participants(contract_id=None):
     """Invite participants page"""
-    return render_template('contracts/invite.html')
+    return render_template('contracts/invite.html', contract_id=contract_id)
 
 
 @bp.route('/contracts/sign')
 def sign_contract():
     """Electronic signing page"""
     return render_template('contracts/sign.html')
+
+
+@bp.route('/contracts/payment')
+def payment():
+    """Contract payment page"""
+    return render_template('contracts/payment.html')
 
 
 @bp.route('/notifications')

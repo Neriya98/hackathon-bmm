@@ -413,15 +413,32 @@ function downloadContract() {
     const contractData = JSON.parse(localStorage.getItem('contractData') || '{}');
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
-    // Check if current user has signed the contract
+    // Get all signatures and invitations for this contract
     const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
-    const userSignature = allSignatures.find(sig => 
-        sig.contractId === contractData.id && 
-        sig.signerEmail === user.email
-    );
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const contractSignatures = allSignatures.filter(sig => sig.contractId === contractData.id);
+    const contractInvitations = allInvitations.filter(inv => inv.contractId === contractData.id);
     
-    if (!userSignature) {
-        showNotification('You must sign the contract before downloading it. Please go to the signing page first.', 'error');
+    // Check if the contract is fully signed
+    const requiredSignatures = Math.max(contractInvitations.length, 1);
+    const isFullySigned = contractSignatures.length >= requiredSignatures;
+    
+    // Check if current user is a signer or creator
+    const userSignature = contractSignatures.find(sig => sig.signerEmail === user.email);
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    const isCreator = userContracts.some(c => c.id === contractData.id);
+    const isInvited = contractInvitations.some(inv => inv.email === user.email);
+    
+    // Allow download if:
+    // 1. Contract is fully signed AND
+    // 2. User is either the creator, a signer, or was invited
+    if (!isFullySigned) {
+        showNotification('This contract is not yet fully signed. All parties must sign before downloading.', 'error');
+        return;
+    }
+    
+    if (!isCreator && !userSignature && !isInvited) {
+        showNotification('You are not authorized to download this contract.', 'error');
         return;
     }
     

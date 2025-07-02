@@ -10,6 +10,7 @@ class ContractType(Enum):
     MULTISIG = "multisig"
     TIMELOCK = "timelock"
     ESCROW = "escrow"
+    SAVINGS = "savings"
 
 
 class ContractStatus(Enum):
@@ -81,6 +82,8 @@ class Contract(db.Model):
             self.timelock_timestamp = kwargs.get('timelock_timestamp')
         elif contract_type == ContractType.ESCROW:
             self.required_signatures = 2  # 2-of-3 pour escrow
+        elif contract_type == ContractType.SAVINGS:
+            self.required_signatures = 1  # Self-signing for savings
         
         # Autres attributs
         for key, value in kwargs.items():

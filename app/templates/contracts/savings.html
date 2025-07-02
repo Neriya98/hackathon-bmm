@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Create Savings Contract - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Create Savings Contract</h1>
+            <p class="mt-2 text-gray-600">Set up a personal Bitcoin savings contract</p>
+        </div>
+
+        <!-- Form Container -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="space-y-6">
+                <form id="savings-contract-form" class="space-y-6">
+                    <!-- Contract Basic Info -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Contract Details</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="contract_title" class="block text-sm font-medium text-gray-700">Title</label>
+                                <input type="text" id="contract_title" name="contract_title" required
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                       placeholder="My Bitcoin Savings">
+                            </div>
+                            
+                            <div>
+                                <label for="contract_description" class="block text-sm font-medium text-gray-700">Description (Optional)</label>
+                                <textarea id="contract_description" name="contract_description" rows="3"
+                                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                          placeholder="Purpose of your savings"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Savings Amount</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="contract_amount" class="block text-sm font-medium text-gray-700">Amount (BTC)</label>
+                                <div class="mt-1 relative rounded-md shadow-sm">
+                                    <input type="number" id="contract_amount" name="contract_amount" required
+                                           class="block w-full pr-12 border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+                                           placeholder="0.01" step="0.00000001" min="0.00000001">
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <span class="text-gray-500 sm:text-sm">BTC</span>
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    <span id="sats-display">0</span> satoshis
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <label for="contract_network" class="block text-sm font-medium text-gray-700">Bitcoin Network</label>
+                                <select id="contract_network" name="contract_network" required
+                                        class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 rounded-md">
+                                    <option value="signet" selected>Signet (Testing)</option>
+                                    <option value="testnet">Testnet</option>
+                                    <option value="mainnet">Mainnet</option>
+                                </select>
+                                <p class="mt-1 text-sm text-gray-500">For testing, please use Signet or Testnet</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Signature -->
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Signature</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="signer_bitcoin_key" class="block text-sm font-medium text-gray-700">Your Bitcoin Public Key</label>
+                                <textarea id="signer_bitcoin_key" name="signer_bitcoin_key" rows="2" required
+                                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                          placeholder="Enter your Bitcoin public key"></textarea>
+                                <button type="button" onclick="loadUserBitcoinKey()" 
+                                        class="mt-2 text-sm text-orange-600 hover:text-orange-800">
+                                    Load from Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contract Preview -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <div class="flex justify-end space-x-4">
+                            <a href="/contracts/create" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                Back
+                            </a>
+                            <button type="button" onclick="previewContract()" 
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                Preview
+                            </button>
+                            <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">
+                                Create Contract
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check authentication
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.email) {
+        alert('Please log in to create contracts');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    // Setup event listeners
+    document.getElementById('contract_amount').addEventListener('input', updateSatsDisplay);
+    document.getElementById('savings-contract-form').addEventListener('submit', handleFormSubmit);
+    
+    // Initialize display
+    updateSatsDisplay();
+});
+
+function updateSatsDisplay() {
+    const btcAmount = parseFloat(document.getElementById('contract_amount').value) || 0;
+    const satsAmount = Math.round(btcAmount * 100000000);
+    document.getElementById('sats-display').textContent = satsAmount.toLocaleString();
+}
+
+function loadUserBitcoinKey() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Log user data for debugging
+    console.log("User data from localStorage:", user);
+    
+    // Check all possible property names that might contain the Bitcoin public key
+    let bitcoinKey = user.bitcoinPublicKey || user.bitcoin_public_key || user.publicKey || '';
+    
+    if (bitcoinKey) {
+        document.getElementById('signer_bitcoin_key').value = bitcoinKey;
+        showNotification('Bitcoin public key loaded from profile successfully', 'success');
+    } else {
+        showNotification('No Bitcoin public key found in profile. Please add one in your profile settings or enter it manually.', 'error');
+        console.error("Bitcoin public key not found in user data:", user);
+    }
+}
+
+function previewContract() {
+    if (!validateForm()) return;
+    
+    // Get form data
+    const formData = getFormData();
+    
+    // Store data for preview
+    localStorage.setItem('contractData', JSON.stringify(formData));
+    
+    // Navigate to preview page
+    window.location.href = '/contracts/preview';
+}
+
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    // Get form data
+    const formData = getFormData();
+    
+    // Create a unique ID for the contract
+    formData.id = 'contract-' + Date.now();
+    formData.public_id = formData.id;
+    formData.created_at = new Date().toISOString();
+    formData.status = 'draft';
+    
+    // Save to localStorage
+    saveContract(formData);
+    
+    // Create auto-invitation for self-signing
+    createSelfInvitation(formData.id);
+    
+    // Redirect to signing page
+    window.location.href = `/contracts/sign?contractId=${formData.id}`;
+}
+
+function validateForm() {
+    const title = document.getElementById('contract_title').value.trim();
+    const amount = parseFloat(document.getElementById('contract_amount').value);
+    const publicKey = document.getElementById('signer_bitcoin_key').value.trim();
+    
+    if (!title) {
+        alert('Please enter a contract title');
+        return false;
+    }
+    
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount greater than 0');
+        return false;
+    }
+    
+    if (!publicKey) {
+        alert('Please enter your Bitcoin public key');
+        return false;
+    }
+    
+    return true;
+}
+
+function getFormData() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const btcAmount = parseFloat(document.getElementById('contract_amount').value) || 0;
+    
+    return {
+        title: document.getElementById('contract_title').value.trim(),
+        description: document.getElementById('contract_description').value.trim(),
+        contract_type: 'savings',
+        network: document.getElementById('contract_network').value,
+        amount: btcAmount,
+        amount_sats: Math.round(btcAmount * 100000000),
+        creator_id: user.id || 'user-123',
+        creator_email: user.email,
+        public_key: document.getElementById('signer_bitcoin_key').value.trim(),
+        required_signatures: 1,
+        collected_signatures: 0
+    };
+}
+
+function saveContract(contractData) {
+    // Retrieve existing contracts
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    
+    // Add new contract
+    userContracts.push(contractData);
+    
+    // Save back to localStorage
+    localStorage.setItem('userContracts', JSON.stringify(userContracts));
+    
+    // Also store as current contract
+    localStorage.setItem('contractData', JSON.stringify(contractData));
+    
+    console.log('Savings contract saved:', contractData);
+}
+
+function createSelfInvitation(contractId) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    // Create self-invitation
+    const invitation = {
+        id: 'invitation-' + Date.now(),
+        contract_id: contractId,
+        sender_id: user.id || 'user-123',
+        recipient_id: user.id || 'user-123',
+        recipient_email: user.email,
+        status: 'sent',
+        inviterName: user.firstName || user.email,
+        sentAt: new Date().toISOString(),
+        role: 'owner',
+        message: 'Self-invitation for your savings contract'
+    };
+    
+    // Save invitation
+    const invitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    invitations.push(invitation);
+    localStorage.setItem('contractInvitations', JSON.stringify(invitations));
+    
+    console.log('Self-invitation created:', invitation);
+}
+
+// Helper function to show notifications
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm ${
+        type === 'info' ? 'bg-blue-50 border border-blue-200 text-blue-800' :
+        type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+        type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+        'bg-gray-50 border border-gray-200 text-gray-800'
+    }`;
+    
+    notification.innerHTML = `
+        <div class="flex items-start">
+            <div class="flex-1">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

@@ -31,7 +31,11 @@ class User(db.Model):
     last_name = db.Column(db.String(50), nullable=True)
     avatar_url = db.Column(db.String(255), nullable=True)
     
+    # User type and role
+    user_type = db.Column(db.String(20), default='user', nullable=False)  # 'user' or 'notaire'
+    
     # Bitcoin/Crypto
+    bitcoin_public_key = db.Column(db.String(130), nullable=True)  # Bitcoin public key for signing
     default_network = db.Column(db.String(20), default='signet', nullable=False)
     preferred_fee_rate = db.Column(db.Integer, default=10, nullable=False)  # sat/vB
     

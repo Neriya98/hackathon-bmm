@@ -336,6 +336,34 @@ def sign_contract(contract_id):
         
         db.session.commit()
         
+        # Import smart contract service and notification service
+        from app.services.smart_contract_service import signature_monitor
+        from app.services.notification_service import notification_service
+        
+        # Create signature notification for all parties
+        signer_name = user.username or user.email
+        notification_service.notify_all_contract_parties(
+            contract.public_id, 
+            'signature', 
+            {
+                'signer_name': signer_name,
+                'message': f'{signer_name} has signed the contract'
+            }
+        )
+        
+        # Check if all signatures are completed and trigger smart contract creation
+        all_signed = signature_monitor.check_signature_completion(contract.public_id)
+        
+        if all_signed:
+            # Notify all parties that contract is fully signed and smart contract creation started
+            notification_service.notify_all_contract_parties(
+                contract.public_id,
+                'completion',
+                {
+                    'message': 'All signatures collected. Creating smart contract...'
+                }
+            )
+        
         return jsonify({
             'message': 'Contract signed successfully',
             'signature': signature.to_dict(),
@@ -526,3 +554,82 @@ def get_dashboard_stats():
         'total_volume_btc': total_volume_btc,
         'total_contracts': len(user_contracts)
     }), 200
+
+
+@bp.route('/<contract_id>/payment-status', methods=['GET'])
+@jwt_required()
+def check_payment_status(contract_id):
+    """Check payment status for a contract"""
+    
+    user_id = get_jwt_identity()
+    user = User.find_by_public_id(user_id)
+    
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    contract = Contract.find_by_public_id(contract_id)
+    
+    if not contract:
+        return jsonify({'error': 'Contract not found'}), 404
+    
+    # Check if user has access to this contract
+    user_contracts = Contract.get_user_contracts(user.id).all()
+    if contract not in user_contracts:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    try:
+        from app.services.smart_contract_service import smart_contract_service
+        
+        payment_status = smart_contract_service.check_payment_status(contract_id)
+        
+        if payment_status:
+            return jsonify({
+                'message': 'Payment status retrieved successfully',
+                'payment_status': payment_status
+            }), 200
+        else:
+            return jsonify({
+                'message': 'No payment information available',
+                'payment_status': None
+            }), 200
+    
+    except Exception as e:
+        current_app.logger.error(f"Payment status check error: {str(e)}")
+        return jsonify({'error': f'Failed to check payment status: {str(e)}'}), 500
+
+
+@bp.route('/<contract_id>/payment/monitor', methods=['POST'])
+@jwt_required()
+@limiter.limit("10 per hour")
+def start_payment_monitoring(contract_id):
+    """Start monitoring for contract payment"""
+    
+    user_id = get_jwt_identity()
+    user = User.find_by_public_id(user_id)
+    
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    contract = Contract.find_by_public_id(contract_id)
+    
+    if not contract:
+        return jsonify({'error': 'Contract not found'}), 404
+    
+    # Only contract creator can start monitoring
+    if contract.creator_id != user.id:
+        return jsonify({'error': 'Only contract creator can start payment monitoring'}), 403
+    
+    try:
+        from app.services.smart_contract_service import smart_contract_service
+        
+        smart_contract_service.start_payment_monitoring(contract)
+        
+        return jsonify({
+            'message': 'Payment monitoring started successfully',
+            'contract_id': contract_id,
+            'payment_address': contract.payment_address
+        }), 200
+    
+    except Exception as e:
+        current_app.logger.error(f"Payment monitoring error: {str(e)}")
+        return jsonify({'error': f'Failed to start payment monitoring: {str(e)}'}), 500

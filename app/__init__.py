@@ -92,12 +92,13 @@ def create_app(config_object='config.DevelopmentConfig'):
     from app.models import user, contract, signature, invitation
     
     # Enregistrer les blueprints
-    from app.api import auth, contracts, psbt
+    from app.api import auth, contracts, psbt, notifications
     from app.routes import main
     
     app.register_blueprint(auth.bp, url_prefix='/api/auth')
     app.register_blueprint(contracts.bp, url_prefix='/api/contracts')
     app.register_blueprint(psbt.bp, url_prefix='/api/psbt')
+    app.register_blueprint(notifications.bp, url_prefix='/api/notifications')
     app.register_blueprint(main.bp)
     
     # Handlers d'erreur

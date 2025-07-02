@@ -67,6 +67,15 @@ function displayContractTypes(userType) {
             allowedRoles: ['user', 'notaire']
         },
         {
+            id: 'savings',
+            title: 'Savings Contract',
+            description: 'Create a secure Bitcoin savings contract that you can sign and manage yourself.',
+            features: ['Self-managed savings', 'Sign with your own key', 'Full control of funds'],
+            color: 'yellow',
+            icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1',
+            allowedRoles: ['user', 'notaire']
+        },
+        {
             id: 'multisig',
             title: 'Multi-Signature',
             description: 'Require multiple signatures to release funds. Perfect for partnerships and shared custody.',
@@ -246,5 +255,7 @@ Contact support to upgrade your account to Notaire status.
 .text-indigo-600 { color: #4f46e5; }
 .bg-orange-100 { background-color: #fed7aa; }
 .text-orange-600 { color: #ea580c; }
+.bg-yellow-100 { background-color: #fef9c3; }
+.text-yellow-600 { color: #ca8a04; }
 </style>
 {% endblock %}

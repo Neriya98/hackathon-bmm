@@ -187,36 +187,27 @@
                 </div>
             </div>
             
-            <!-- Recent Invitations -->
+            <!-- Pending Invitations (for contract creators) -->
             <div class="bg-white rounded-lg shadow">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 class="text-lg font-medium text-gray-900">Recent Invitations</h2>
-                    <a href="/invitations" class="text-sm text-blue-600 hover:text-blue-500">View all</a>
+                    <h2 class="text-lg font-medium text-gray-900">Pending Invitations</h2>
+                    <span id="pending-invitations-count" class="text-sm text-gray-500">0 pending</span>
                 </div>
-                <div class="divide-y divide-gray-200" id="recent-invitations">
-                    <div class="px-6 py-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">John Doe invited you</p>
-                                <p class="text-sm text-gray-500">To sign: Partnership Agreement</p>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    Pending
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="px-6 py-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">Alice Smith invited you</p>
-                                <p class="text-sm text-gray-500">To sign: Escrow Deal #42</p>
-                            </div>
-                            <div class="flex-shrink-0">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Accepted
+                <div id="pending-invitations-list">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- My Recent Invitations (invitations I received) -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Invitations I Received</h2>
+                <a href="/notifications" class="text-sm text-blue-600 hover:text-blue-500">View all</a>
+            </div>
+            <div id="received-invitations-list">
+                <!-- Will be populated by JavaScript -->
+            </div>
                                 </span>
                             </div>
                         </div>
@@ -251,9 +242,172 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('user-email').textContent = user.email;
     }
     
-    // Show the dashboard (it's already visible, but this could be used for loading states)
+    // Load dashboard data
+    loadDashboardStats();
+    loadPendingInvitations();
+    loadReceivedInvitations();
+    loadRecentContracts();
+    
     console.log('Dashboard loaded successfully');
 });
+
+function loadDashboardStats() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    
+    // Calculate stats
+    const activeContracts = userContracts.filter(c => c.status === 'fully_signed' || c.status === 'partially_signed').length;
+    const pendingSignatures = allInvitations.filter(inv => inv.status !== 'signed').length;
+    const totalInvitations = allInvitations.length;
+    
+    // Calculate total volume in satoshis
+    const totalVolume = userContracts.reduce((sum, contract) => sum + (parseInt(contract.amount) || 0), 0);
+    const totalVolumeDisplay = (totalVolume / 100000000).toFixed(8) + ' BTC';
+    
+    // Update stats display
+    document.getElementById('stat-active-contracts').textContent = activeContracts;
+    document.getElementById('stat-pending-signatures').textContent = pendingSignatures;
+    document.getElementById('stat-total-invitations').textContent = totalInvitations;
+    document.getElementById('stat-total-volume').textContent = totalVolumeDisplay;
+}
+
+function loadPendingInvitations() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    
+    // Get invitations sent by current user that are still pending
+    const myContractIds = userContracts.map(c => c.id);
+    const pendingInvitations = allInvitations.filter(inv => 
+        myContractIds.includes(inv.contractId) && inv.status === 'sent'
+    );
+    
+    const countElement = document.getElementById('pending-invitations-count');
+    const listElement = document.getElementById('pending-invitations-list');
+    
+    countElement.textContent = `${pendingInvitations.length} pending`;
+    
+    if (pendingInvitations.length === 0) {
+        listElement.innerHTML = `
+            <div class="px-6 py-8 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No pending invitations</h3>
+                <p class="mt-1 text-sm text-gray-500">All your contract invitations have been responded to.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const invitationsHTML = pendingInvitations.map(invitation => {
+        const contract = userContracts.find(c => c.id === invitation.contractId);
+        const contractTitle = contract ? contract.title : 'Unknown Contract';
+        const timeAgo = getTimeAgo(new Date(invitation.sentAt));
+        
+        return `
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">Invited: ${invitation.email}</p>
+                        <p class="text-sm text-gray-500">Contract: ${contractTitle} • ${timeAgo}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Pending
+                        </span>
+                        <a href="/contracts/invite?contractId=${invitation.contractId}" 
+                           class="text-blue-600 hover:text-blue-900 text-xs">
+                            Manage
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    listElement.innerHTML = invitationsHTML;
+}
+
+function loadReceivedInvitations() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    
+    // Get invitations received by current user
+    const receivedInvitations = allInvitations
+        .filter(inv => inv.email === user.email)
+        .slice(0, 3); // Show only latest 3
+    
+    const listElement = document.getElementById('received-invitations-list');
+    
+    if (receivedInvitations.length === 0) {
+        listElement.innerHTML = `
+            <div class="px-6 py-8 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No invitations</h3>
+                <p class="mt-1 text-sm text-gray-500">You haven't received any contract invitations yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const invitationsHTML = receivedInvitations.map(invitation => {
+        const contract = userContracts.find(c => c.id === invitation.contractId);
+        const contractTitle = contract ? contract.title : `Contract ${invitation.contractId}`;
+        const timeAgo = getTimeAgo(new Date(invitation.sentAt));
+        const statusColor = invitation.status === 'signed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+        const statusText = invitation.status === 'signed' ? 'Signed' : 'Pending';
+        
+        return `
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">Contract: ${contractTitle}</p>
+                        <p class="text-sm text-gray-500">Invited ${timeAgo}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                            ${statusText}
+                        </span>
+                        ${invitation.status !== 'signed' ? `
+                            <a href="/contracts/sign?contractId=${invitation.contractId}&invitationId=${invitation.id}" 
+                               class="text-orange-600 hover:text-orange-900 text-xs font-medium">
+                                Sign Now
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    listElement.innerHTML = invitationsHTML;
+}
+
+function loadRecentContracts() {
+    // This function can be enhanced to show real recent contracts
+    // For now, we'll keep the existing mock data or enhance it later
+}
+
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+}
 
 // Logout function
 function logout() {

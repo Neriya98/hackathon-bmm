@@ -23,6 +23,28 @@
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">Invite Participants</h2>
             
+            <!-- Instructions -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">How Invitations Work</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Enter the email address of the person you want to invite</li>
+                                <li>They'll receive an email with a signing link</li>
+                                <li>When they click the link, they can sign using their Bitcoin public key</li>
+                                <li>The system will automatically use their key if they're registered</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <form id="invitation-form" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -116,7 +138,41 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadContract() {
-    // Get contract data from localStorage (created during contract creation)
+    // Get contract ID from URL parameter or template
+    const urlParams = new URLSearchParams(window.location.search);
+    const contractIdFromURL = urlParams.get('contractId');
+    const contractIdFromTemplate = '{{ contract_id }}';
+    const currentContractId = contractIdFromURL || (contractIdFromTemplate !== 'None' && contractIdFromTemplate !== '' ? contractIdFromTemplate : null);
+    
+    if (currentContractId) {
+        loadContractData(currentContractId);
+    } else {
+        // Try to load from localStorage if no contract ID provided
+        loadContractFromStorage();
+    }
+}
+
+function loadContractData(contractId) {
+    // First try to load from localStorage
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    const contractData = userContracts.find(c => c.id === contractId);
+    
+    if (contractData) {
+        currentContract = contractData;
+        displayContractSummary();
+        
+        // Set up quick share link
+        const quickShareLink = `${window.location.origin}/contracts/sign?contractId=${currentContract.id}`;
+        document.getElementById('quick-share-link').value = quickShareLink;
+    } else {
+        // Contract not found in localStorage, show error
+        alert('Contract not found. Please create a contract first.');
+        window.location.href = '/contracts/create';
+    }
+}
+
+function loadContractFromStorage() {
+    // Fallback to load from localStorage without specific ID
     const contractData = JSON.parse(localStorage.getItem('contractData') || '{}');
     
     if (!contractData.contract_type) {
@@ -126,7 +182,6 @@ function loadContract() {
     }
     
     currentContract = contractData;
-    
     displayContractSummary();
     
     // Set up quick share link
@@ -192,17 +247,19 @@ function displaySentInvitations() {
                         ${invitation.message ? `<p class="text-sm text-gray-600 mt-1 italic">"${invitation.message}"</p>` : ''}
                         
                         <!-- Shareable Link -->
-                        <div class="mt-2 p-2 bg-gray-50 rounded border">
-                            <p class="text-xs text-gray-600 mb-1">Shareable invitation link:</p>
+                        <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-sm font-medium text-green-800 mb-2">📋 Shareable Invitation Link (For Testing):</p>
                             <div class="flex items-center space-x-2">
                                 <input type="text" readonly 
-                                       value="${window.location.origin}/contracts/sign?invitationId=${invitation.id}&contractId=${invitation.contractId}"
-                                       class="text-xs bg-white border border-gray-300 rounded px-2 py-1 flex-1 font-mono">
+                                       value="${window.location.origin}/invitations/${invitation.token}"
+                                       class="text-sm bg-white border border-green-300 rounded px-3 py-2 flex-1 font-mono text-green-700"
+                                       id="invitation-link-${invitation.id}">
                                 <button onclick="copyInvitationLink('${invitation.id}')" 
-                                        class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">
-                                    Copy
+                                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+                                    📋 Copy Link
                                 </button>
                             </div>
+                            <p class="text-xs text-green-600 mt-2">💡 Copy this link and paste it in the other browser window to sign the contract</p>
                         </div>
                     </div>
                     <div class="flex flex-col items-end space-y-2">
@@ -332,26 +389,34 @@ function proceedToSigning() {
 }
 
 function copyInvitationLink(invitationId) {
-    const invitation = sentInvitations.find(inv => inv.id === invitationId);
-    if (!invitation) return;
+    const inputField = document.getElementById(`invitation-link-${invitationId}`);
+    if (!inputField) return;
     
-    const link = `${window.location.origin}/contracts/sign?invitationId=${invitationId}&contractId=${invitation.contractId}`;
+    const link = inputField.value;
     
+    // Copy to clipboard
     navigator.clipboard.writeText(link).then(() => {
         // Show temporary success message
         const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-        button.classList.add('bg-green-500');
+        const originalText = button.innerHTML;
+        button.innerHTML = '✅ Copied!';
+        button.classList.remove('bg-green-600', 'hover:bg-green-700');
+        button.classList.add('bg-green-800');
+        
+        // Also select the text in the input field
+        inputField.select();
+        inputField.setSelectionRange(0, 99999); // For mobile devices
         
         setTimeout(() => {
-            button.textContent = originalText;
-            button.classList.remove('bg-green-500');
-            button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            button.innerHTML = originalText;
+            button.classList.remove('bg-green-800');
+            button.classList.add('bg-green-600', 'hover:bg-green-700');
         }, 2000);
     }).catch(() => {
-        alert('Failed to copy link. Please copy manually.');
+        // Fallback: select the text for manual copying
+        inputField.select();
+        inputField.setSelectionRange(0, 99999);
+        alert('Link selected! Press Ctrl+C (or Cmd+C) to copy.');
     });
 }
 

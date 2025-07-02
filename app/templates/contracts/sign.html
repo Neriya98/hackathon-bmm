@@ -22,6 +22,14 @@
 
             <!-- Signing Panel -->
             <div class="space-y-6">
+                <!-- Invitation Info -->
+                <div id="invitation-info" class="bg-white rounded-lg shadow-lg p-6" style="display: none;">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Invitation Details</h2>
+                    <div id="invitation-details">
+                        <!-- Invitation details will be populated by JavaScript -->
+                    </div>
+                </div>
+                
                 <!-- Contract Status -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">Signing Status</h2>
@@ -44,8 +52,9 @@
                         
                         <div>
                             <label for="signature_date" class="block text-sm font-medium text-gray-700">Signature Date</label>
-                            <input type="datetime-local" id="signature_date" name="signature_date" required readonly
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50">
+                            <input type="datetime-local" id="signature_date" name="signature_date" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">Current date and time is set by default, but you can change it if needed</p>
                         </div>
                         
                         <div>
@@ -97,7 +106,7 @@
                         
                         <!-- Sign Button -->
                         <button type="button" onclick="signContract()" id="sign-button" disabled
-                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                                class="primary-button w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
                             <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
@@ -107,7 +116,19 @@
                 </div>
 
                 <!-- Back to Dashboard -->
-                <div class="text-center">
+                <div class="text-center space-y-4">
+                    <!-- Smart Contract Button (initially hidden) -->
+                    <div id="smart-contract-container" class="hidden">
+                        <button type="button" onclick="createSmartContract()" id="create-smart-contract-button" class="primary-button w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            Create Smart Contract
+                        </button>
+                        <p class="text-xs text-gray-500 mt-1">This will create a Bitcoin smart contract and generate a payment link</p>
+                    </div>
+                    
+                    <!-- Back to Dashboard Button -->
                     <a href="/dashboard" 
                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                         <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,15 +147,61 @@ let currentContract = null;
 let hasValidSignature = false;
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadContract();
-    setCurrentDateTime();
-    generateSignatureMessage();
+    console.log("Document loaded, initializing contract signing page");
     
-    // Enable sign button when terms are agreed and signature is valid
-    document.getElementById('agree_terms').addEventListener('change', updateSignButton);
-    document.getElementById('signer_bitcoin_key').addEventListener('input', validateBitcoinSignature);
-    document.getElementById('signer_name').addEventListener('input', updateSignButton);
+    try {
+        // Load contract data
+        loadContract();
+        
+        // Set current date and time in the signature date field
+        setCurrentDateTime();
+        
+        // Generate the signature message based on contract data
+        generateSignatureMessage();
+        
+        // Auto-load user information (name and bitcoin key)
+        autoLoadUserInfo();
+        
+        // Setup event listeners
+        document.getElementById('agree_terms').addEventListener('change', updateSignButton);
+        document.getElementById('signer_bitcoin_key').addEventListener('input', validateBitcoinSignature);
+        document.getElementById('signer_name').addEventListener('input', updateSignButton);
+        
+        console.log("Contract signing page initialization complete");
+    } catch (error) {
+        console.error("Error initializing contract signing page:", error);
+        showNotification('Error loading the contract. Please try refreshing the page.', 'error');
+    }
 });
+
+function autoLoadUserInfo() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    console.log("Auto-loading user info:", user);
+    
+    // Auto-fill signer name if available
+    if (user.email) {
+        const nameField = document.getElementById('signer_name');
+        if (nameField && !nameField.value) {
+            // Use email as name if no specific name is stored
+            nameField.value = user.firstName && user.lastName 
+                ? `${user.firstName} ${user.lastName}` 
+                : user.email.split('@')[0];
+            console.log("Auto-filled name:", nameField.value);
+        }
+    }
+    
+    // Auto-load Bitcoin public key if available (check multiple possible property names)
+    const bitcoinKey = user.bitcoinPublicKey || user.bitcoin_public_key || user.publicKey;
+    if (bitcoinKey) {
+        const keyField = document.getElementById('signer_bitcoin_key');
+        if (keyField && !keyField.value) {
+            keyField.value = bitcoinKey;
+            console.log("Auto-filled Bitcoin key:", bitcoinKey);
+            validateBitcoinSignature();
+        }
+    }
+}
 
 function loadContract() {
     // Get contract and invitation info from URL parameters
@@ -158,13 +225,59 @@ function loadContract() {
         return;
     }
     
-    // If this is from an invitation, mark the invitation as accessed
+    console.log("Loaded contract:", currentContract);
+    
+    // Display invitation details if available
     if (invitationId) {
+        displayInvitationDetails(invitationId);
         markInvitationAsAccessed(invitationId);
     }
     
-    generateContractDocument();
+    // Display contract document and signing status
+    displayContractDocument();
     displaySigningStatus();
+    
+    // If contract is already fully signed, show the smart contract button
+    if (currentContract.status === 'fully_signed') {
+        console.log("Contract is fully signed, showing smart contract button");
+        document.getElementById('smart-contract-container').classList.remove('hidden');
+    }
+}
+
+function displayInvitationDetails(invitationId) {
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const invitation = allInvitations.find(inv => inv.id === invitationId);
+    
+    if (!invitation) return;
+    
+    const invitationInfoDiv = document.getElementById('invitation-info');
+    const invitationDetailsDiv = document.getElementById('invitation-details');
+    
+    invitationInfoDiv.style.display = 'block';
+    
+    const inviterName = invitation.inviterName || 'Contract Creator';
+    const invitationDate = new Date(invitation.sentAt).toLocaleDateString();
+    
+    invitationDetailsDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">You've been invited to sign this contract</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <p><strong>Invited by:</strong> ${inviterName}</p>
+                        <p><strong>Invitation sent:</strong> ${invitationDate}</p>
+                        <p><strong>Your role:</strong> ${invitation.role || 'Signer'}</p>
+                        ${invitation.message ? `<p><strong>Message:</strong> "${invitation.message}"</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function generateContractDocument() {
@@ -255,6 +368,17 @@ function getContractSpecificTerms(contract) {
                     </div>
                 </div>
             `;
+        case 'savings':
+            return `
+                <div class="border-t pt-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">Savings Contract</h3>
+                    <div class="text-sm text-gray-700 space-y-2">
+                        <p><strong>Type:</strong> Self-managed Bitcoin savings</p>
+                        <p><strong>Owner:</strong> ${contract.creator_email}</p>
+                        <p><strong>Required Signatures:</strong> 1 (Self)</p>
+                    </div>
+                </div>
+            `;
         default:
             return '';
     }
@@ -291,6 +415,28 @@ function displaySigningStatus() {
         document.getElementById('signer_name').disabled = true;
         document.getElementById('signer_bitcoin_key').disabled = true;
         document.getElementById('agree_terms').disabled = true;
+        
+        // Check if all required signatures are collected
+        const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+        const contractInvitations = allInvitations.filter(inv => inv.contractId === currentContract.id);
+        
+        // Determine required signatures based on contract type
+        let requiredSignatures = Math.max(contractInvitations.length, 1);
+        
+        if (currentContract.contract_type === 'multisig') {
+            requiredSignatures = parseInt(currentContract.required_signatures) || 2;
+        } else if (currentContract.contract_type === 'escrow') {
+            requiredSignatures = 3; // Buyer, Seller, Arbiter
+        } else if (currentContract.contract_type === 'timelock') {
+            requiredSignatures = 1; // Only the creator needs to sign initially
+        } else if (currentContract.contract_type === 'savings') {
+            requiredSignatures = 1; // Self-signed contract
+        }
+        
+        // Show the smart contract button if all signatures are collected
+        if (contractSignatures.length >= requiredSignatures) {
+            document.getElementById('smart-contract-container').classList.remove('hidden');
+        }
     } else {
         statusHTML = `
             <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -342,11 +488,20 @@ By signing this message, I confirm my agreement to the terms and conditions of t
 
 function loadUserBitcoinKey() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.bitcoinPublicKey) {
-        document.getElementById('signer_bitcoin_key').value = user.bitcoinPublicKey;
+    
+    // Log user data for debugging
+    console.log("User data from localStorage:", user);
+    
+    // Check all possible property names that might contain the Bitcoin public key
+    let bitcoinKey = user.bitcoinPublicKey || user.bitcoin_public_key || user.publicKey || '';
+    
+    if (bitcoinKey) {
+        document.getElementById('signer_bitcoin_key').value = bitcoinKey;
         validateBitcoinSignature();
+        showNotification('Bitcoin public key loaded from profile successfully', 'success');
     } else {
-        showNotification('No Bitcoin public key found in profile. Please add one in your profile settings.', 'error');
+        showNotification('No Bitcoin public key found in profile. Please add one in your profile settings or enter it manually.', 'error');
+        console.error("Bitcoin public key not found in user data:", user);
     }
 }
 
@@ -421,8 +576,23 @@ function isValidBitcoinPublicKey(key) {
 
 function setCurrentDateTime() {
     const now = new Date();
+    
+    // Format date in the format yyyy-MM-ddTHH:mm (required for datetime-local input)
+    // Adjust for timezone offset to get the correct local time
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('signature_date').value = now.toISOString().slice(0, 16);
+    
+    // Format to ISO string and slice to get the format required by datetime-local
+    const formattedDateTime = now.toISOString().slice(0, 16);
+    
+    console.log("Setting current date and time:", formattedDateTime);
+    
+    // Set the value to the input field
+    const dateField = document.getElementById('signature_date');
+    if (dateField) {
+        dateField.value = formattedDateTime;
+    } else {
+        console.error("Date field not found with ID 'signature_date'");
+    }
 }
 
 function updateSignButton() {
@@ -490,13 +660,38 @@ function signContract() {
     }
     
     // Update contract status if all required signatures are collected
-    updateContractSigningStatus();
+    const isFullySigned = updateContractSigningStatus();
     
     showNotification('Contract signed successfully with Bitcoin public key!', 'success');
     
-    // Refresh the page to show updated status
+    // For savings contracts, we want to immediately show the smart contract button
+    if (currentContract.contract_type === 'savings') {
+        console.log("Savings contract signed, showing smart contract button immediately");
+        document.getElementById('smart-contract-container').classList.remove('hidden');
+        
+        // Update the sign button
+        const signButton = document.getElementById('sign-button');
+        signButton.disabled = true;
+        
+        // Disable signature inputs
+        document.getElementById('signer_name').disabled = true;
+        document.getElementById('signer_bitcoin_key').disabled = true;
+        document.getElementById('agree_terms').disabled = true;
+        
+        return; // No need to reload the page
+    }
+    
+    // For other contract types, reload the page to show updated status
     setTimeout(() => {
-        window.location.reload();
+        const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+        const contract = userContracts.find(c => c.id === currentContract.id);
+        
+        if (contract && contract.status === 'fully_signed') {
+            // If contract is fully signed, show smart contract button when page reloads
+            window.location.reload();
+        } else {
+            window.location.reload();
+        }
     }, 1500);
 }
 
@@ -520,7 +715,8 @@ function getContractTypeLabel(type) {
     const labels = {
         'multisig': 'Multi-Signature',
         'escrow': 'Escrow',
-        'timelock': 'Timelock'
+        'timelock': 'Timelock',
+        'savings': 'Savings'
     };
     return labels[type] || type;
 }
@@ -584,7 +780,7 @@ function updateContractSigningStatus() {
     const contractInvitations = allInvitations.filter(inv => inv.contractId === currentContract.id);
     
     // Determine required signatures based on contract type
-    let requiredSignatures = 2; // Default
+    let requiredSignatures = Math.max(contractInvitations.length, 1);
     
     if (currentContract.contract_type === 'multisig') {
         requiredSignatures = parseInt(currentContract.required_signatures) || 2;
@@ -592,6 +788,8 @@ function updateContractSigningStatus() {
         requiredSignatures = 3; // Buyer, Seller, Arbiter
     } else if (currentContract.contract_type === 'timelock') {
         requiredSignatures = 1; // Only the creator needs to sign initially
+    } else if (currentContract.contract_type === 'savings') {
+        requiredSignatures = 1; // Self-signed contract
     }
     
     // Update contract status
@@ -599,12 +797,202 @@ function updateContractSigningStatus() {
     const contractIndex = userContracts.findIndex(c => c.id === currentContract.id);
     
     if (contractIndex !== -1) {
+        const wasFullySigned = userContracts[contractIndex].status === 'fully_signed';
+        let isFullySigned = false;
+        
         if (contractSignatures.length >= requiredSignatures) {
             userContracts[contractIndex].status = 'fully_signed';
+            isFullySigned = true;
+            
+            // If this is the signature that completed the contract, create notifications
+            if (!wasFullySigned) {
+                createContractCompletedNotifications(currentContract, contractSignatures);
+            }
         } else if (contractSignatures.length > 0) {
             userContracts[contractIndex].status = 'partially_signed';
         }
         localStorage.setItem('userContracts', JSON.stringify(userContracts));
+        return isFullySigned;
+    }
+    return false;
+}
+
+function createContractCompletedNotifications(contract, signatures) {
+    const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    const timestamp = new Date().toISOString();
+    
+    // Create notification for contract creator
+    const creatorNotification = {
+        id: 'notif_completed_' + Date.now() + '_' + Math.random(),
+        type: 'contract_completed',
+        title: 'Contract Fully Signed',
+        message: `Your contract "${contract.title}" has been signed by all parties and is now complete. You can now download the final document.`,
+        timestamp: timestamp,
+        read: false,
+        contractId: contract.id,
+        actionUrl: `/contracts/preview?contractId=${contract.id}`
+    };
+    
+    notifications.push(creatorNotification);
+    
+    // Create notifications for all signers
+    signatures.forEach(signature => {
+        const signerNotification = {
+            id: 'notif_download_' + Date.now() + '_' + Math.random() + '_' + signature.signerEmail,
+            type: 'download_available',
+            title: 'Contract Ready for Download',
+            message: `The contract "${contract.title}" has been fully signed and is ready for download.`,
+            timestamp: timestamp,
+            read: false,
+            contractId: contract.id,
+            targetEmail: signature.signerEmail,
+            actionUrl: `/contracts/preview?contractId=${contract.id}`
+        };
+        
+        notifications.push(signerNotification);
+    });
+    
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+}
+
+function createSmartContract() {
+    console.log('Creating smart contract...');
+    // Get all contract signatures
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    const contractSignatures = allSignatures.filter(sig => sig.contractId === currentContract.id);
+    
+    console.log('Contract signatures:', contractSignatures);
+    
+    // We need public keys from all signers to create the smart contract
+    const publicKeys = contractSignatures.map(sig => sig.bitcoinPublicKey);
+    
+    if (publicKeys.length === 0) {
+        showNotification('No signatures found for this contract', 'error');
+        return;
+    }
+    
+    console.log('Public keys for smart contract:', publicKeys);
+    
+    // For a savings contract with only one key, we duplicate the key to maintain the multisig format
+    if (publicKeys.length === 1 && (currentContract.contract_type === 'savings' || currentContract.contract_type === 'timelock')) {
+        publicKeys.push(publicKeys[0]);
+        console.log('Duplicated public key for savings contract');
+    }
+    
+    // Smart contract payload
+    const payload = {
+        public_keys: publicKeys,
+        threshold: publicKeys.length, // All signatures required by default
+        network: currentContract.network || 'signet' // Default to signet for testing
+    };
+    
+    console.log('Creating smart contract with payload:', payload);
+    
+    // Show loading state
+    const button = document.getElementById('create-smart-contract-button');
+    const originalButtonText = button.innerHTML;
+    button.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Creating Smart Contract...
+    `;
+    button.disabled = true;
+    
+    // Simulate API call (in a real app, this would be an actual fetch to the backend API)
+    setTimeout(() => {
+        // Create mock smart contract data
+        const smartContractData = {
+            id: 'sc_' + Date.now(),
+            contract_id: currentContract.id,
+            address: '2N' + Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12),
+            miniscript: 'thresh(' + publicKeys.length + ',' + publicKeys.map((_, i) => 'pk(' + i + ')').join(',') + ')',
+            policy: 'and(' + publicKeys.map(pk => 'pk(' + pk.substring(0, 8) + '...)').join(',') + ')',
+            payment_uri: 'bitcoin:2N' + Math.random().toString(36).substring(2, 12) + '?amount=' + (currentContract.amount || 0.001),
+            created_at: new Date().toISOString()
+        };
+        
+        // Update contract with smart contract data
+        const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+        const contractIndex = userContracts.findIndex(c => c.id === currentContract.id);
+        
+        if (contractIndex !== -1) {
+            userContracts[contractIndex].status = 'active';
+            userContracts[contractIndex].smart_contract = smartContractData;
+            userContracts[contractIndex].payment_address = smartContractData.address;
+            userContracts[contractIndex].payment_uri = smartContractData.payment_uri;
+            localStorage.setItem('userContracts', JSON.stringify(userContracts));
+        }
+        
+        // Create notifications about smart contract creation
+        createSmartContractNotifications(currentContract, smartContractData);
+        
+        // Reset button state
+        button.innerHTML = originalButtonText;
+        button.disabled = false;
+        
+        // Show success message
+        showNotification('Smart contract created successfully! A payment link has been generated.', 'success');
+        
+        // Redirect to payment page after delay
+        setTimeout(() => {
+            console.log('Redirecting to payment page...');
+            window.location.href = `/contracts/payment?contractId=${currentContract.id}`;
+        }, 1500);
+    }, 2000); // Simulate network delay
+}
+
+function createSmartContractNotifications(contract, smartContractData) {
+    const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    const timestamp = new Date().toISOString();
+    
+    // Create notification for contract creator
+    const creatorNotification = {
+        id: 'notif_smart_contract_' + Date.now(),
+        type: 'smart_contract_created',
+        title: 'Smart Contract Created',
+        message: `A Bitcoin smart contract has been created for "${contract.title}". Payment is now required to activate the contract.`,
+        timestamp: timestamp,
+        read: false,
+        contractId: contract.id,
+        smartContractAddress: smartContractData.address,
+        paymentUri: smartContractData.payment_uri,
+        actionUrl: `/contracts/payment?contractId=${contract.id}`
+    };
+    
+    notifications.push(creatorNotification);
+    
+    // Create notifications for all participants
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const contractInvitations = allInvitations.filter(inv => inv.contractId === contract.id);
+    
+    contractInvitations.forEach(invitation => {
+        // Skip creating duplicate notifications for the creator
+        if (invitation.sender_id === contract.creator_id) return;
+        
+        const participantNotification = {
+            id: 'notif_smart_contract_' + Date.now() + '_' + Math.random(),
+            type: 'smart_contract_created',
+            title: 'Smart Contract Created',
+            message: `A Bitcoin smart contract has been created for "${contract.title}". Please check for payment instructions.`,
+            timestamp: timestamp,
+            read: false,
+            contractId: contract.id,
+            actionUrl: `/contracts/details?contractId=${contract.id}`
+        };
+        
+        notifications.push(participantNotification);
+    });
+    
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+    
+    // Update notification count in UI if present
+    const notifCountElement = document.getElementById('notification-count');
+    if (notifCountElement) {
+        const unreadCount = notifications.filter(n => !n.read).length;
+        notifCountElement.textContent = unreadCount;
+        notifCountElement.classList.remove('hidden');
     }
 }
 </script>

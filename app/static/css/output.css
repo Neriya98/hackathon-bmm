@@ -15,7 +15,10 @@
 }
 
 /* Ensure buttons are visible */
-button[type="submit"] {
+button[type="submit"], 
+button[type="button"].primary-button,
+#sign-button,
+#create-smart-contract-button {
     display: flex !important;
     width: 100% !important;
     justify-content: center !important;
@@ -32,13 +35,27 @@ button[type="submit"] {
     font-size: 1rem !important;
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover,
+button[type="button"].primary-button:hover,
+#sign-button:hover,
+#create-smart-contract-button:hover {
     background-color: #c2410c !important;
 }
 
-button[type="submit"]:focus {
+button[type="submit"]:focus,
+button[type="button"].primary-button:focus,
+#sign-button:focus,
+#create-smart-contract-button:focus {
     outline: 2px solid #ea580c !important;
     outline-offset: 2px !important;
+}
+
+button[type="submit"]:disabled,
+button[type="button"].primary-button:disabled,
+#sign-button:disabled,
+#create-smart-contract-button:disabled {
+    background-color: #9ca3af !important;
+    cursor: not-allowed !important;
 }
 
 /* Form inputs styling */

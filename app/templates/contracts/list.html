@@ -8,18 +8,11 @@
         <!-- Page Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Contracts</h1>
-                <p class="mt-2 text-gray-600">Manage your Bitcoin contracts and multi-signature arrangements.</p>
+                <h1 class="text-3xl font-bold text-gray-900">My Contracts</h1>
+                <p class="mt-2 text-gray-600">All contracts you've created or been invited to sign</p>
             </div>
             <div class="flex space-x-3">
-                <button onclick="app.loadDynamicContent({dataset: {load: '/contracts/export', target: '#export-modal'}})" 
-                        class="btn-secondary">
-                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-6 4h8"/>
-                    </svg>
-                    Export
-                </button>
-                <a href="{{ url_for('contracts.create') }}" class="btn-primary">
+                <a href="/contracts/create" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">
                     <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                     </svg>
@@ -28,26 +21,396 @@
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-white rounded-lg shadow mb-6" x-data="{ showFilters: false }">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Contracts</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="total-contracts-count">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Fully Signed</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="signed-contracts-count">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Signatures</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="pending-contracts-count">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">My Invitations</dt>
+                            <dd class="text-lg font-medium text-gray-900" id="invitations-count">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="filterContracts('all')" id="filter-all" 
+                            class="filter-tab border-orange-500 text-orange-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        All Contracts
+                    </button>
+                    <button onclick="filterContracts('created')" id="filter-created"
+                            class="filter-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        Created by Me
+                    </button>
+                    <button onclick="filterContracts('invited')" id="filter-invited"
+                            class="filter-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        Invited to Sign
+                    </button>
+                    <button onclick="filterContracts('signed')" id="filter-signed"
+                            class="filter-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                        Signed by Me
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Contracts List -->
+        <div class="bg-white shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-medium text-gray-900">Filters</h2>
-                    <button @click="showFilters = !showFilters" class="text-gray-500 hover:text-gray-700">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"/>
+                <h2 class="text-lg font-medium text-gray-900">Contracts</h2>
+            </div>
+            <div id="contracts-list">
+                <!-- Contracts will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No contracts found</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating your first contract.</p>
+            <div class="mt-6">
+                <a href="/contracts/create" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                    </svg>
+                    New Contract
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let allContracts = [];
+let currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadContracts();
+    updateStats();
+    displayContracts();
+});
+
+function loadContracts() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    
+    // Get contracts created by user
+    const createdContracts = userContracts.map(contract => ({
+        ...contract,
+        userRole: 'creator',
+        userHasSigned: allSignatures.some(sig => sig.contractId === contract.id && sig.signerEmail === user.email)
+    }));
+    
+    // Get contracts user was invited to sign
+    const invitedContracts = allInvitations
+        .filter(inv => inv.email === user.email)
+        .map(invitation => {
+            // Find the contract details (might be from another user's contracts)
+            let contract = userContracts.find(c => c.id === invitation.contractId);
+            if (!contract) {
+                // Create a minimal contract object if not found
+                contract = {
+                    id: invitation.contractId,
+                    title: `Contract ${invitation.contractId}`,
+                    contract_type: 'unknown',
+                    amount: 0,
+                    network: 'signet',
+                    created_at: invitation.sentAt,
+                    status: 'draft'
+                };
+            }
+            
+            return {
+                ...contract,
+                userRole: 'invitee',
+                invitation: invitation,
+                userHasSigned: allSignatures.some(sig => sig.contractId === contract.id && sig.signerEmail === user.email)
+            };
+        });
+    
+    // Combine and deduplicate contracts
+    const contractMap = new Map();
+    
+    createdContracts.forEach(contract => {
+        contractMap.set(contract.id, contract);
+    });
+    
+    invitedContracts.forEach(contract => {
+        if (contractMap.has(contract.id)) {
+            // If user both created and was invited to same contract, mark as both
+            const existing = contractMap.get(contract.id);
+            existing.userRole = 'both';
+            existing.invitation = contract.invitation;
+        } else {
+            contractMap.set(contract.id, contract);
+        }
+    });
+    
+    allContracts = Array.from(contractMap.values());
+    
+    // Add signature and invitation counts to each contract
+    allContracts.forEach(contract => {
+        const contractInvitations = allInvitations.filter(inv => inv.contractId === contract.id);
+        const contractSignatures = allSignatures.filter(sig => sig.contractId === contract.id);
+        
+        contract.invitationCount = contractInvitations.length;
+        contract.signatureCount = contractSignatures.length;
+        contract.signatures = contractSignatures;
+        contract.invitations = contractInvitations;
+        
+        // Determine contract status
+        if (contractSignatures.length === 0) {
+            contract.displayStatus = 'Draft';
+        } else if (contractInvitations.length > 0 && contractSignatures.length >= contractInvitations.length) {
+            contract.displayStatus = 'Fully Signed';
+        } else if (contractSignatures.length > 0) {
+            contract.displayStatus = 'Partially Signed';
+        } else {
+            contract.displayStatus = 'Pending';
+        }
+    });
+}
+
+function updateStats() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    
+    const totalCount = allContracts.length;
+    const signedCount = allContracts.filter(c => c.displayStatus === 'Fully Signed').length;
+    const pendingCount = allContracts.filter(c => c.displayStatus === 'Pending' || c.displayStatus === 'Partially Signed').length;
+    const invitationsCount = allInvitations.filter(inv => inv.email === user.email && inv.status !== 'signed').length;
+    
+    document.getElementById('total-contracts-count').textContent = totalCount;
+    document.getElementById('signed-contracts-count').textContent = signedCount;
+    document.getElementById('pending-contracts-count').textContent = pendingCount;
+    document.getElementById('invitations-count').textContent = invitationsCount;
+}
+
+function filterContracts(filter) {
+    currentFilter = filter;
+    
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('border-orange-500', 'text-orange-600');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    const activeTab = document.getElementById(`filter-${filter}`);
+    if (activeTab) {
+        activeTab.classList.remove('border-transparent', 'text-gray-500');
+        activeTab.classList.add('border-orange-500', 'text-orange-600');
+    }
+    
+    displayContracts();
+}
+
+function displayContracts() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let filteredContracts = allContracts;
+    
+    // Apply filter
+    switch (currentFilter) {
+        case 'created':
+            filteredContracts = allContracts.filter(c => c.userRole === 'creator' || c.userRole === 'both');
+            break;
+        case 'invited':
+            filteredContracts = allContracts.filter(c => c.userRole === 'invitee' || c.userRole === 'both');
+            break;
+        case 'signed':
+            filteredContracts = allContracts.filter(c => c.userHasSigned);
+            break;
+        default:
+            // Show all
+            break;
+    }
+    
+    const listContainer = document.getElementById('contracts-list');
+    const emptyState = document.getElementById('empty-state');
+    
+    if (filteredContracts.length === 0) {
+        listContainer.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    
+    const contractsHTML = filteredContracts.map(contract => createContractHTML(contract)).join('');
+    listContainer.innerHTML = contractsHTML;
+}
+
+function createContractHTML(contract) {
+    const statusColor = getStatusColor(contract.displayStatus);
+    const roleColor = getRoleColor(contract.userRole);
+    const contractTypeLabel = getContractTypeLabel(contract.contract_type);
+    
+    return `
+        <div class="border-b border-gray-200 px-6 py-4 hover:bg-gray-50">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center space-x-3">
+                        <h3 class="text-sm font-medium text-gray-900 truncate">${contract.title}</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                            ${contract.displayStatus}
+                        </span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleColor}">
+                            ${contract.userRole === 'creator' ? 'Created by me' : 
+                              contract.userRole === 'invitee' ? 'Invited to sign' : 
+                              'Creator & Invitee'}
+                        </span>
+                    </div>
+                    <div class="mt-1 flex items-center text-sm text-gray-500 space-x-4">
+                        <span>${contractTypeLabel}</span>
+                        <span>•</span>
+                        <span>${formatSatoshis(contract.amount)}</span>
+                        <span>•</span>
+                        <span>Created ${new Date(contract.created_at).toLocaleDateString()}</span>
+                        <span>•</span>
+                        <span>${contract.signatureCount}/${Math.max(contract.invitationCount, 1)} signatures</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    ${contract.userRole === 'invitee' && !contract.userHasSigned ? `
+                        <a href="/contracts/sign?contractId=${contract.id}${contract.invitation ? '&invitationId=' + contract.invitation.id : ''}" 
+                           class="text-orange-600 hover:text-orange-900 text-sm font-medium">
+                            Sign Contract
+                        </a>
+                    ` : ''}
+                    
+                    ${contract.userRole === 'creator' || contract.userRole === 'both' ? `
+                        <a href="/contracts/invite?contractId=${contract.id}" 
+                           class="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                            Manage
+                        </a>
+                    ` : ''}
+                    
+                    ${contract.displayStatus === 'Fully Signed' ? `
+                        <a href="/contracts/preview?contractId=${contract.id}" 
+                           class="text-green-600 hover:text-green-900 text-sm font-medium">
+                            Download
+                        </a>
+                    ` : ''}
+                    
+                    <button onclick="viewContractDetails('${contract.id}')" 
+                            class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                         </svg>
                     </button>
                 </div>
             </div>
-            <div x-show="showFilters" x-collapse class="px-6 py-4">
-                <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" class="input-field">
-                            <option value="">All Statuses</option>
-                            <option value="pending" {{ 'selected' if request.args.get('status') == 'pending' }}>Pending</option>
-                            <option value="active" {{ 'selected' if request.args.get('status') == 'active' }}>Active</option>
+        </div>
+    `;
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'Draft': 'bg-gray-100 text-gray-800',
+        'Pending': 'bg-yellow-100 text-yellow-800',
+        'Partially Signed': 'bg-blue-100 text-blue-800',
+        'Fully Signed': 'bg-green-100 text-green-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+}
+
+function getRoleColor(role) {
+    const colors = {
+        'creator': 'bg-purple-100 text-purple-800',
+        'invitee': 'bg-orange-100 text-orange-800',
+        'both': 'bg-indigo-100 text-indigo-800'
+    };
+    return colors[role] || 'bg-gray-100 text-gray-800';
+}
+
+function getContractTypeLabel(type) {
+    const labels = {
+        'sale': 'Sale Contract',
+        'rental': 'Rental Contract',
+        'multisig': 'Multi-Signature',
+        'escrow': 'Escrow',
+        'timelock': 'Timelock',
+        'unknown': 'Contract'
+    };
+    return labels[type] || type;
+}
+
+function formatSatoshis(sats) {
+    if (!sats) return '0 BTC';
+    const btc = parseFloat(sats) / 100000000;
+    return `${btc.toFixed(8)} BTC`;
+}
+
+function viewContractDetails(contractId) {
+    // For now, redirect to preview page
+    window.location.href = `/contracts/preview?contractId=${contractId}`;
+}
+</script>
+{% endblock %}
                             <option value="completed" {{ 'selected' if request.args.get('status') == 'completed' }}>Completed</option>
                             <option value="expired" {{ 'selected' if request.args.get('status') == 'expired' }}>Expired</option>
                         </select>

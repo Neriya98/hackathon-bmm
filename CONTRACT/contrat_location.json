@@ -1,0 +1,29 @@
+{
+  "contractType": "RentalContract",
+  "landlord": {
+    "name": "",
+    "address": "",
+    "phone": ""
+  },
+  "tenant": {
+    "name": "",
+    "address": "",
+    "phone": ""
+  },
+  "property": {
+    "address": "",
+    "type": "",
+    "size": 0
+  },
+  "terms": {
+    "duration": "",
+    "startDate": "",
+    "monthlyRent": 0,
+    "depositAmount": 0,
+    "paymentMethod": ""
+  },
+  "smartContract": {
+    "address": "",
+    "network": "Rootstock Testnet"
+  }
+}

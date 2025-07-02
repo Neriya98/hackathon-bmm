@@ -44,7 +44,35 @@ def docs():
 
 @app.route('/contracts/create')
 def create_contract():
-    return redirect('/dashboard')
+    return render_template('contracts/create.html')
+
+@app.route('/contracts/create/multisig')
+def create_multisig():
+    return render_template('contracts/multisig.html')
+
+@app.route('/contracts/create/escrow')
+def create_escrow():
+    return render_template('contracts/escrow.html')
+
+@app.route('/contracts/create/timelock')
+def create_timelock():
+    return render_template('contracts/timelock.html')
+
+@app.route('/contracts/preview')
+def preview_contract():
+    return render_template('contracts/preview.html')
+
+@app.route('/contracts/invite')
+def invite_participants():
+    return render_template('contracts/invite.html')
+
+@app.route('/contracts/sign')
+def sign_contract():
+    return render_template('contracts/sign.html')
+
+@app.route('/contracts/list')
+def list_contracts():
+    return render_template('contracts/list.html')
 
 # Serve static files
 @app.route('/static/<path:filename>')

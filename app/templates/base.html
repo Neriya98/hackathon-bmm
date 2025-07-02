@@ -57,7 +57,9 @@
 <body class="h-full">
     <div id="app" class="min-h-full">
         <!-- Navigation -->
-        {% include 'partials/navbar.html' %}
+        <div id="navbar-container" style="display: none;">
+            {% include 'partials/navbar.html' %}
+        </div>
         
         <!-- Flash Messages -->
         {% include 'partials/flash_messages.html' %}
@@ -97,12 +99,24 @@
         // CSRF Token for AJAX requests
         window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        // Initialize animations
+        // Initialize animations and navigation
         document.addEventListener('DOMContentLoaded', function() {
             // Fade in page content
             const content = document.querySelector('main');
             if (content) {
                 content.classList.add('fade-in');
+            }
+            
+            // Show/hide navbar based on authentication
+            const token = localStorage.getItem('token');
+            const navbarContainer = document.getElementById('navbar-container');
+            
+            // Show navbar only if user is authenticated and not on auth pages
+            const isAuthPage = window.location.pathname.includes('/auth/');
+            const isHomePage = window.location.pathname === '/';
+            
+            if (token && !isAuthPage && !isHomePage && navbarContainer) {
+                navbarContainer.style.display = 'block';
             }
         });
     </script>

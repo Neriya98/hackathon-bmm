@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Create Contract - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Create New Contract</h1>
+            <p class="mt-2 text-gray-600">Choose the type of Bitcoin contract you want to create</p>
+        </div>
+
+        <!-- Contract Type Selection -->
+        <div id="contract-types-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Content will be populated by JavaScript based on user role -->
+        </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-8">
+            <a href="/dashboard" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Check user authentication and role
+document.addEventListener('DOMContentLoaded', function() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!user.email) {
+        alert('Please log in to create contracts');
+        window.location.href = '/auth/login';
+        return;
+    }
+    
+    displayContractTypes(user.userType);
+});
+
+function displayContractTypes(userType) {
+    const grid = document.getElementById('contract-types-grid');
+    
+    // Define contract types with access control
+    const contractTypes = [
+        {
+            id: 'sale',
+            title: 'Sale Contract',
+            description: 'Create a secure sales agreement between buyer and seller with Bitcoin escrow.',
+            features: ['Buyer protection', 'Seller guarantee', 'Automatic payment release'],
+            color: 'green',
+            icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1',
+            allowedRoles: ['user', 'notaire']
+        },
+        {
+            id: 'rental',
+            title: 'Rental Contract',
+            description: 'Secure rental agreements with automated rent collection and deposit management.',
+            features: ['Automated rent collection', 'Deposit protection', 'Dispute resolution'],
+            color: 'purple',
+            icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2zm9-9V4a2 2 0 00-2-2H8a2 2 0 00-2 2v4h10V4a2 2 0 00-2-2z',
+            allowedRoles: ['user', 'notaire']
+        },
+        {
+            id: 'multisig',
+            title: 'Multi-Signature',
+            description: 'Require multiple signatures to release funds. Perfect for partnerships and shared custody.',
+            features: ['2-of-3, 3-of-5 configurations', 'Enhanced security', 'Shared control'],
+            color: 'blue',
+            icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+            allowedRoles: ['notaire'],
+            premium: true
+        },
+        {
+            id: 'escrow',
+            title: 'Escrow',
+            description: 'Secure transactions with a trusted third party. Ideal for buying/selling goods or services.',
+            features: ['Buyer protection', 'Seller guarantee', 'Dispute resolution'],
+            color: 'indigo',
+            icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+            allowedRoles: ['notaire'],
+            premium: true
+        },
+        {
+            id: 'timelock',
+            title: 'Timelock',
+            description: 'Lock funds until a specific time or block height. Great for savings and scheduled payments.',
+            features: ['Time-based release', 'Forced savings', 'Inheritance planning'],
+            color: 'orange',
+            icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+            allowedRoles: ['notaire'],
+            premium: true
+        }
+    ];
+    
+    // Filter contract types based on user role
+    const availableTypes = contractTypes.filter(type => 
+        type.allowedRoles.includes(userType || 'user')
+    );
+    
+    // Generate HTML for available contract types
+    const contractTypesHTML = availableTypes.map(type => `
+        <div class="contract-type-card ${type.premium ? 'premium-card' : ''}" onclick="selectContractType('${type.id}')">
+            <div class="flex flex-col h-full">
+                <div class="flex-shrink-0">
+                    <div class="w-12 h-12 bg-${type.color}-100 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-${type.color}-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type.icon}"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <h3 class="text-lg font-semibold text-gray-900">${type.title}</h3>
+                        ${type.premium ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gold-100 text-gold-800">Notaire</span>' : ''}
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">${type.description}</p>
+                    <ul class="text-sm text-gray-500 space-y-1">
+                        ${type.features.map(feature => `<li>• ${feature}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Add restricted contracts message for regular users
+    const restrictedHTML = userType !== 'notaire' ? `
+        <div class="col-span-full mt-8 p-6 bg-amber-50 border border-amber-200 rounded-lg">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-amber-800">Want access to advanced contract types?</h3>
+                    <div class="mt-2 text-sm text-amber-700">
+                        <p>Upgrade to a Notaire account to access Multi-Signature, Escrow, and Timelock contracts with advanced Bitcoin features.</p>
+                        <div class="mt-4">
+                            <button onclick="showUpgradeInfo()" class="bg-amber-600 text-white px-4 py-2 rounded-md text-sm hover:bg-amber-700">
+                                Learn About Notaire Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    ` : '';
+    
+    grid.innerHTML = contractTypesHTML + restrictedHTML;
+}
+
+function selectContractType(type) {
+    // Store selected contract type
+    localStorage.setItem('selectedContractType', type);
+    
+    // Redirect to contract details form
+    window.location.href = `/contracts/create/${type}`;
+}
+
+function showUpgradeInfo() {
+    alert(`
+🏛️ NOTAIRE ACCOUNT BENEFITS
+
+✅ Access to ALL contract types:
+   • Multi-Signature Contracts
+   • Escrow Contracts  
+   • Timelock Contracts
+
+✅ Advanced Bitcoin Features:
+   • Complex signature schemes
+   • Time-based releases
+   • Automated escrow systems
+
+✅ Professional Tools:
+   • Enhanced security options
+   • Custom contract templates
+   • Priority support
+
+Contact support to upgrade your account to Notaire status.
+    `);
+}
+</script>
+
+<style>
+.contract-type-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 100%;
+}
+
+.contract-type-card:hover {
+    border-color: #f97316;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.contract-type-card:active {
+    transform: translateY(0);
+}
+
+.premium-card {
+    background: linear-gradient(135deg, #fefbf4 0%, #fef7e6 100%);
+    border: 2px solid #f59e0b;
+    position: relative;
+}
+
+.premium-card:hover {
+    border-color: #d97706;
+    box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2);
+}
+
+.premium-card::before {
+    content: "✨";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.bg-gold-100 {
+    background-color: #fef3c7;
+}
+
+.text-gold-800 {
+    color: #92400e;
+}
+
+/* Color classes for dynamic generation */
+.bg-green-100 { background-color: #dcfce7; }
+.text-green-600 { color: #16a34a; }
+.bg-purple-100 { background-color: #f3e8ff; }
+.text-purple-600 { color: #9333ea; }
+.bg-blue-100 { background-color: #dbeafe; }
+.text-blue-600 { color: #2563eb; }
+.bg-indigo-100 { background-color: #e0e7ff; }
+.text-indigo-600 { color: #4f46e5; }
+.bg-orange-100 { background-color: #fed7aa; }
+.text-orange-600 { color: #ea580c; }
+</style>
+{% endblock %}

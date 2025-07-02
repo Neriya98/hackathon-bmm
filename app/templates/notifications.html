@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Notifications</h1>
+            <p class="mt-2 text-gray-600">Stay updated on your contract activities</p>
+        </div>
+
+        <!-- Notification Actions -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex space-x-2">
+                <button onclick="markAllAsRead()" 
+                        class="text-sm text-blue-600 hover:text-blue-800">
+                    Mark all as read
+                </button>
+                <span class="text-gray-300">|</span>
+                <button onclick="clearReadNotifications()" 
+                        class="text-sm text-gray-600 hover:text-gray-800">
+                    Clear read notifications
+                </button>
+            </div>
+            <div class="text-sm text-gray-500" id="notification-count">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div id="notifications-container" class="space-y-4">
+            <!-- Notifications will be populated by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5V7a7 7 0 1114 0v10z"/>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+            <p class="mt-1 text-sm text-gray-500">You're all caught up! Check back later for updates.</p>
+        </div>
+
+        <!-- Back to Dashboard -->
+        <div class="mt-8 text-center">
+            <a href="/dashboard" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+let notifications = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    displayNotifications();
+});
+
+function loadNotifications() {
+    notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    
+    // Add any new notifications based on current user's activities
+    generateNotifications();
+    
+    // Sort by timestamp (newest first)
+    notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}
+
+function generateNotifications() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const allInvitations = JSON.parse(localStorage.getItem('contractInvitations') || '[]');
+    const allSignatures = JSON.parse(localStorage.getItem('contractSignatures') || '[]');
+    const userContracts = JSON.parse(localStorage.getItem('userContracts') || '[]');
+    
+    // Check for new invitations (notifications for invitees)
+    allInvitations
+        .filter(inv => inv.email === user.email)
+        .forEach(invitation => {
+            const existingNotification = notifications.find(notif => 
+                notif.type === 'invitation' && notif.invitationId === invitation.id
+            );
+            
+            if (!existingNotification) {
+                const contract = userContracts.find(c => c.id === invitation.contractId) || 
+                                { title: 'Contract', id: invitation.contractId };
+                
+                notifications.push({
+                    id: 'notif_' + Date.now() + '_' + Math.random(),
+                    type: 'invitation',
+                    title: 'New Contract Invitation',
+                    message: `You've been invited to sign the contract "${contract.title}"`,
+                    timestamp: invitation.sentAt,
+                    read: false,
+                    invitationId: invitation.id,
+                    contractId: invitation.contractId,
+                    actionUrl: `/contracts/sign?contractId=${invitation.contractId}&invitationId=${invitation.id}`
+                });
+            }
+        });
+    
+    // Check for completed contracts (notifications for contract creators)
+    userContracts.forEach(contract => {
+        const contractInvitations = allInvitations.filter(inv => inv.contractId === contract.id);
+        const contractSignatures = allSignatures.filter(sig => sig.contractId === contract.id);
+        
+        // If all invitations have been signed
+        if (contractInvitations.length > 0 && 
+            contractInvitations.every(inv => inv.status === 'signed') &&
+            contractSignatures.length >= contractInvitations.length) {
+            
+            const existingNotification = notifications.find(notif => 
+                notif.type === 'contract_completed' && notif.contractId === contract.id
+            );
+            
+            if (!existingNotification) {
+                notifications.push({
+                    id: 'notif_' + Date.now() + '_' + Math.random(),
+                    type: 'contract_completed',
+                    title: 'Contract Fully Signed',
+                    message: `Your contract "${contract.title}" has been signed by all parties and is now complete`,
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    contractId: contract.id,
+                    actionUrl: `/contracts/preview?contractId=${contract.id}`
+                });
+            }
+        }
+    });
+    
+    // Check for new signatures on user's contracts (notifications for contract creators)
+    allSignatures.forEach(signature => {
+        const contract = userContracts.find(c => c.id === signature.contractId);
+        if (contract && signature.signerEmail !== user.email) {
+            const existingNotification = notifications.find(notif => 
+                notif.type === 'signature_received' && 
+                notif.signatureId === signature.id
+            );
+            
+            if (!existingNotification) {
+                notifications.push({
+                    id: 'notif_' + Date.now() + '_' + Math.random(),
+                    type: 'signature_received',
+                    title: 'New Contract Signature',
+                    message: `${signature.signerName} has signed your contract "${contract.title}"`,
+                    timestamp: signature.signedAt,
+                    read: false,
+                    contractId: signature.contractId,
+                    signatureId: signature.id,
+                    actionUrl: `/contracts/preview?contractId=${signature.contractId}`
+                });
+            }
+        }
+    });
+    
+    // Save updated notifications
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+}
+
+function displayNotifications() {
+    const container = document.getElementById('notifications-container');
+    const emptyState = document.getElementById('empty-state');
+    const countElement = document.getElementById('notification-count');
+    
+    if (notifications.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        countElement.textContent = '0 notifications';
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    
+    const unreadCount = notifications.filter(n => !n.read).length;
+    countElement.textContent = `${notifications.length} total, ${unreadCount} unread`;
+    
+    container.innerHTML = notifications.map(notification => createNotificationHTML(notification)).join('');
+}
+
+function createNotificationHTML(notification) {
+    const isUnread = !notification.read;
+    const bgColor = isUnread ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200';
+    const dotColor = isUnread ? 'bg-blue-600' : 'bg-gray-400';
+    
+    const icon = getNotificationIcon(notification.type);
+    const timeAgo = getTimeAgo(new Date(notification.timestamp));
+    
+    return `
+        <div class="border ${bgColor} rounded-lg p-4 ${isUnread ? 'shadow-sm' : ''}">
+            <div class="flex items-start space-x-3">
+                ${isUnread ? `<div class="w-2 h-2 ${dotColor} rounded-full mt-2 flex-shrink-0"></div>` : ''}
+                <div class="flex-shrink-0 mt-1">
+                    ${icon}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-sm font-medium text-gray-900 ${isUnread ? 'font-semibold' : ''}">${notification.title}</h3>
+                            <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                            <p class="text-xs text-gray-500 mt-2">${timeAgo}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 ml-4">
+                            ${notification.actionUrl ? `
+                                <a href="${notification.actionUrl}" 
+                                   class="text-xs bg-orange-600 text-white px-2 py-1 rounded hover:bg-orange-700">
+                                    View
+                                </a>
+                            ` : ''}
+                            ${isUnread ? `
+                                <button onclick="markAsRead('${notification.id}')" 
+                                        class="text-xs text-blue-600 hover:text-blue-800">
+                                    Mark as read
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getNotificationIcon(type) {
+    const icons = {
+        'invitation': `
+            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+        `,
+        'signature_received': `
+            <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        `,
+        'contract_completed': `
+            <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        `
+    };
+    
+    return icons[type] || `
+        <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+    `;
+}
+
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function markAsRead(notificationId) {
+    const notification = notifications.find(n => n.id === notificationId);
+    if (notification) {
+        notification.read = true;
+        localStorage.setItem('userNotifications', JSON.stringify(notifications));
+        displayNotifications();
+    }
+}
+
+function markAllAsRead() {
+    notifications.forEach(n => n.read = true);
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+    displayNotifications();
+}
+
+function clearReadNotifications() {
+    notifications = notifications.filter(n => !n.read);
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+    displayNotifications();
+}
+</script>
+{% endblock %}

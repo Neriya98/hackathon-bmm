@@ -1,0 +1,349 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulaire de Contrat de Location</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.7.0/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; }
+    button { padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #218838; }
+    #status { margin-top: 20px; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Formulaire de Contrat de Location</h1>
+  <form id="rentalForm">
+    <h2>Informations du Bailleur</h2>
+    <div class="form-group">
+      <label for="landlordName">Nom du Bailleur</label>
+      <input type="text" id="landlordName" required>
+    </div>
+    <div class="form-group">
+      <label for="landlordAddress">Adresse du Bailleur</label>
+      <input type="text" id="landlordAddress" required>
+    </div>
+    <div class="form-group">
+      <label for="landlordPhone">Téléphone du Bailleur</label>
+      <input type="tel" id="landlordPhone" required>
+    </div>
+
+    <h2>Informations du Locataire</h2>
+    <div class="form-group">
+      <label for="tenantName">Nom du Locataire</label>
+      <input type="text" id="tenantName" required>
+    </div>
+    <div class="form-group">
+      <label for="tenantAddress">Adresse du Locataire</label>
+      <input type="text" id="tenantAddress" required>
+    </div>
+    <div class="form-group">
+      <label for="tenantPhone">Téléphone du Locataire</label>
+      <input type="tel" id="tenantPhone" required>
+    </div>
+
+    <h2>Détails du Bien</h2>
+    <div class="form-group">
+      <label for="propertyAddress">Adresse du Bien</label>
+      <input type="text" id="propertyAddress" required>
+    </div>
+    <div class="form-group">
+      <label for="propertyType">Type de Bien</label>
+      <input type="text" id="propertyType" placeholder="Ex. : Appartement, Maison" required>
+    </div>
+    <div class="form-group">
+      <label for="propertySize">Surface (m²)</label>
+      <input type="number" id="propertySize" required>
+    </div>
+
+    <h2>Conditions du Bail</h2>
+    <div class="form-group">
+      <label for="duration">Durée du Bail (ex. : 3 ans)</label>
+      <input type="text" id="duration" required>
+    </div>
+    <div class="form-group">
+      <label for="startDate">Date de Début</label>
+      <input type="date" id="startDate" required>
+    </div>
+    <div class="form-group">
+      <label for="monthlyRent">Loyer Mensuel (tRBTC)</label>
+      <input type="number" id="monthlyRent" step="0.0001" required>
+    </div>
+    <div class="form-group">
+      <label for="depositAmount">Dépôt de Garantie (tRBTC)</label>
+      <input type="number" id="depositAmount" step="0.0001" required>
+    </div>
+    <div class="form-group">
+      <label for="paymentMethod">Méthode de Paiement</label>
+      <select id="paymentMethod" required>
+        <option value="Virement">Virement via Smart Contract</option>
+      </select>
+    </div>
+
+    <button type="submit">Soumettre le Contrat</button>
+  </form>
+
+  <h2>Interaction avec le Smart Contract</h2>
+  <div class="form-group">
+    <label for="contractAddress">Adresse du Smart Contract</label>
+    <input type="text" id="contractAddress" placeholder="Entrez l'adresse du smart contract déployé">
+  </div>
+  <button id="connectMetamask">Connecter MetaMask</button>
+  <button id="payDeposit">Payer le Dépôt</button>
+  <button id="signContract">Signer le Contrat</button>
+  <div id="status"></div>
+
+  <script>
+    // ABI du smart contract (extrait du contrat RentalContract.sol)
+    const contractABI = [
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_landlord", "type": "address" },
+          { "internalType": "address", "name": "_tenant", "type": "address" },
+          { "internalType": "uint256", "name": "_depositAmount", "type": "uint256" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": false, "internalType": "address", "name": "tenant", "type": "address" },
+          { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "DepositPaid",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": false, "internalType": "address", "name": "recipient", "type": "address" },
+          { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "name": "DepositReleased",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          { "indexed": false, "internalType": "address", "name": "signer", "type": "address" }
+        ],
+        "name": "ContractSigned",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "depositAmount",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "depositPaid",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getContractStatus",
+        "outputs": [
+          { "internalType": "bool", "name": "", "type": "bool" },
+          { "internalType": "bool", "name": "", "type": "bool" },
+          { "internalType": "bool", "name": "", "type": "bool" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "landlord",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "landlordSigned",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "payDeposit",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "signContract",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "tenant",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "tenantSigned",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    let web3, contract, accounts;
+
+    // Connecter à MetaMask
+    document.getElementById('connectMetamask').addEventListener('click', async () => {
+      if (window.ethereum) {
+        try {
+          web3 = new Web3(window.ethereum);
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          accounts = await web3.eth.getAccounts();
+          document.getElementById('status').innerText = `Connecté avec : ${accounts[0]}`;
+          checkNetwork();
+        } catch (error) {
+          document.getElementById('status').innerText = `Erreur de connexion : ${error.message}`;
+        }
+      } else {
+        document.getElementById('status').innerText = 'MetaMask non détecté. Veuillez installer MetaMask.';
+      }
+    });
+
+    // Vérifier que le réseau est RSK Testnet (Chain ID: 31)
+    async function checkNetwork() {
+      const chainId = await web3.eth.getChainId();
+      if (chainId !== 31) {
+        document.getElementById('status').innerText = 'Veuillez passer au Rootstock Testnet dans MetaMask.';
+      } else {
+        document.getElementById('status').innerText += '\nConnecté au Rootstock Testnet.';
+      }
+    }
+
+    // Soumettre le formulaire et sauvegarder en JSON
+    document.getElementById('rentalForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const contractData = {
+        contractType: "RentalContract",
+        landlord: {
+          name: document.getElementById('landlordName').value,
+          address: document.getElementById('landlordAddress').value,
+          phone: document.getElementById('landlordPhone').value
+        },
+        tenant: {
+          name: document.getElementById('tenantName').value,
+          address: document.getElementById('tenantAddress').value,
+          phone: document.getElementById('tenantPhone').value
+        },
+        property: {
+          address: document.getElementById('propertyAddress').value,
+          type: document.getElementById('propertyType').value,
+          size: parseInt(document.getElementById('propertySize').value)
+        },
+        terms: {
+          duration: document.getElementById('duration').value,
+          startDate: document.getElementById('startDate').value,
+          monthlyRent: parseFloat(document.getElementById('monthlyRent').value),
+          depositAmount: parseFloat(document.getElementById('depositAmount').value),
+          paymentMethod: document.getElementById('paymentMethod').value
+        },
+        smartContract: {
+          address: document.getElementById('contractAddress').value,
+          network: "Rootstock Testnet"
+        }
+      };
+      console.log('Données du contrat :', contractData);
+      document.getElementById('status').innerText = 'Formulaire soumis. Données enregistrées.';
+      // Ici, vous pouvez sauvegarder contractData dans une base de données ou un fichier JSON
+    });
+
+    // Payer le dépôt via le smart contract
+    document.getElementById('payDeposit').addEventListener('click', async () => {
+      const contractAddress = document.getElementById('contractAddress').value;
+      if (!web3 || !contractAddress) {
+        document.getElementById('status').innerText = 'Veuillez connecter MetaMask et entrer l’adresse du contrat.';
+        return;
+      }
+      try {
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        const depositAmount = document.getElementById('depositAmount').value;
+        await contract.methods.payDeposit().send({
+          from: accounts[0],
+          value: web3.utils.toWei(depositAmount, 'ether')
+        });
+        document.getElementById('status').innerText = 'Dépôt payé avec succès !';
+      } catch (error) {
+        document.getElementById('status').innerText = `Erreur lors du paiement : ${error.message}`;
+      }
+    });
+
+    // Signer le contrat via le smart contract
+    document.getElementById('signContract').addEventListener('click', async () => {
+      const contractAddress = document.getElementById('contractAddress').value;
+      if (!web3 || !contractAddress) {
+        document.getElementById('status').innerText = 'Veuillez connecter MetaMask et entrer l’adresse du contrat.';
+        return;
+      }
+      try {
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        await contract.methods.signContract().send({ from: accounts[0] });
+        document.getElementById('status').innerText = 'Contrat signé avec succès !';
+      } catch (error) {
+        document.getElementById('status').innerText = `Erreur lors de la signature : ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

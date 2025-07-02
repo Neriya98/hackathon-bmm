@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Create Escrow Contract - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Escrow Contract</h1>
+            <p class="mt-2 text-gray-600">Create a secure escrow contract with dispute resolution</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <form id="escrow-form" class="space-y-6">
+                <!-- Contract Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Contract Title</label>
+                    <input type="text" id="title" name="title" required
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="e.g., Laptop Purchase, Freelance Project">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="description" name="description" rows="3" required
+                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                              placeholder="Describe what goods/services are being exchanged..."></textarea>
+                </div>
+
+                <!-- Amount -->
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Escrow Amount (in satoshis)</label>
+                    <input type="number" id="amount" name="amount" required min="1"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="100000">
+                    <p class="mt-1 text-sm text-gray-500">1 BTC = 100,000,000 satoshis</p>
+                </div>
+
+                <!-- Parties Information -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Parties Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="buyer_email" class="block text-sm font-medium text-gray-700">Buyer Email</label>
+                            <input type="email" id="buyer_email" name="buyer_email" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                   placeholder="buyer@example.com">
+                        </div>
+                        <div>
+                            <label for="seller_email" class="block text-sm font-medium text-gray-700">Seller Email</label>
+                            <input type="email" id="seller_email" name="seller_email" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                   placeholder="seller@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Escrow Terms -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Escrow Terms</h3>
+                    
+                    <div>
+                        <label for="release_condition" class="block text-sm font-medium text-gray-700">Release Condition</label>
+                        <textarea id="release_condition" name="release_condition" rows="2" required
+                                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                  placeholder="Funds will be released when the buyer confirms receipt of goods..."></textarea>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="dispute_resolution" class="block text-sm font-medium text-gray-700">Dispute Resolution</label>
+                        <textarea id="dispute_resolution" name="dispute_resolution" rows="2"
+                                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                  placeholder="In case of dispute, an arbiter will be selected..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Network -->
+                <div>
+                    <label for="network" class="block text-sm font-medium text-gray-700">Bitcoin Network</label>
+                    <select id="network" name="network" required
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        <option value="signet">Signet (Testing)</option>
+                        <option value="testnet">Testnet</option>
+                        <option value="mainnet">Mainnet</option>
+                    </select>
+                </div>
+
+                <!-- Fee Rate -->
+                <div>
+                    <label for="fee_rate" class="block text-sm font-medium text-gray-700">Fee Rate (sat/vB)</label>
+                    <input type="number" id="fee_rate" name="fee_rate" required min="1" max="1000" value="10"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                    <p class="mt-1 text-sm text-gray-500">Recommended: 10-50 sat/vB</p>
+                </div>
+
+                <!-- Expiry -->
+                <div>
+                    <label for="expiry_days" class="block text-sm font-medium text-gray-700">Contract Expiry (days)</label>
+                    <input type="number" id="expiry_days" name="expiry_days" required min="1" max="365" value="30"
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-between pt-6">
+                    <a href="/contracts/create" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">
+                        Create Contract
+                        <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('escrow-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const contractData = Object.fromEntries(formData);
+    contractData.contract_type = 'escrow';
+    
+    // Store contract data temporarily
+    localStorage.setItem('contractData', JSON.stringify(contractData));
+    
+    // Redirect to contract preview/generation
+    window.location.href = '/contracts/preview';
+});
+</script>
+{% endblock %}

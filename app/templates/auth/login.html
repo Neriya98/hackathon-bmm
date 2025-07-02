@@ -77,17 +77,42 @@ document.getElementById('login-form').addEventListener('submit', async function(
     submitBtn.disabled = true;
     submitBtn.textContent = 'Signing in...';
     
+    // Check if user exists in localStorage (from registration)
+    const registeredUser = JSON.parse(localStorage.getItem('registeredUser') || '{}');
+    
     // Simulate login success after a short delay
     setTimeout(() => {
-        // Store a mock token for now
-        localStorage.setItem('token', 'mock-jwt-token-for-testing');
-        localStorage.setItem('user', JSON.stringify({
-            email: data.email,
-            name: 'Test User',
-            id: 'test-user-123'
-        }));
+        let user;
         
-        alert('Login successful!');
+        if (registeredUser.email === data.email) {
+            // Use the registered user data
+            user = {
+                email: registeredUser.email,
+                name: `${registeredUser.firstName} ${registeredUser.lastName}`,
+                firstName: registeredUser.firstName,
+                lastName: registeredUser.lastName,
+                userType: registeredUser.userType,
+                bitcoinPublicKey: registeredUser.bitcoinPublicKey,
+                id: 'user_' + Date.now()
+            };
+        } else {
+            // Default test user for demo
+            user = {
+                email: data.email,
+                name: 'Test User',
+                firstName: 'Test',
+                lastName: 'User',
+                userType: 'user', // Default to regular user
+                bitcoinPublicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798', // Example key
+                id: 'test-user-123'
+            };
+        }
+        
+        // Store authentication data
+        localStorage.setItem('token', 'mock-jwt-token-for-testing');
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        alert(`Login successful! Welcome ${user.userType === 'notaire' ? 'Notaire' : ''} ${user.firstName}!`);
         window.location.href = '/dashboard';
     }, 1000);
 });

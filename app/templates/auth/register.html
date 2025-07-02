@@ -46,6 +46,51 @@
                            placeholder="Last Name">
                 </div>
                 
+                <!-- User Type Selection -->
+                <div>
+                    <label for="user_type" class="block text-sm font-medium text-gray-700">Account Type</label>
+                    <select id="user_type" name="user_type" required 
+                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">
+                        <option value="">Select your account type</option>
+                        <option value="user">Regular User - Can create Sale & Rental contracts</option>
+                        <option value="notaire">Notaire - Full access to all contract types</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Regular users can create sale and rental contracts. Notaires have access to all contract types including multi-signature, escrow, and timelock contracts.
+                    </p>
+                </div>
+                
+                <!-- Bitcoin Public Key -->
+                <div>
+                    <label for="bitcoin_public_key" class="block text-sm font-medium text-gray-700">
+                        Bitcoin Public Key
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="bitcoin_public_key" name="bitcoin_public_key" rows="3" required 
+                              class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm" 
+                              placeholder="Enter your Bitcoin public key (starts with 02 or 03 for compressed, or 04 for uncompressed)"></textarea>
+                    <div class="mt-2 flex items-start space-x-2">
+                        <div class="flex-shrink-0">
+                            <svg class="w-4 h-4 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="text-xs text-gray-600">
+                            <p class="font-medium">Your Bitcoin public key will be used to:</p>
+                            <ul class="list-disc list-inside mt-1 space-y-1">
+                                <li>Digitally sign contracts</li>
+                                <li>Verify your identity</li>
+                                <li>Secure contract transactions</li>
+                            </ul>
+                            <p class="mt-2 text-blue-600">
+                                <button type="button" onclick="generateKeyPair()" class="underline hover:no-underline">
+                                    Don't have a key? Generate one for me
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
                     <input id="password" name="password" type="password" autocomplete="new-password" required 
@@ -85,6 +130,51 @@
 </div>
 
 <script>
+// Simple Bitcoin key pair generation for demo purposes
+function generateKeyPair() {
+    // This is a simplified version for demo - in production you'd use proper Bitcoin libraries
+    const privateKey = generateRandomHex(64);
+    const publicKey = generatePublicKeyFromPrivate(privateKey);
+    
+    document.getElementById('bitcoin_public_key').value = publicKey;
+    
+    // Show the private key to the user for safekeeping
+    alert(`
+IMPORTANT: Save your private key securely!
+
+Private Key: ${privateKey}
+Public Key: ${publicKey}
+
+⚠️ NEVER share your private key with anyone!
+⚠️ SecureDeal will NEVER ask for your private key!
+⚠️ Store your private key in a secure location!
+
+Your public key has been automatically filled in the form.
+    `);
+}
+
+function generateRandomHex(length) {
+    const characters = '0123456789abcdef';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+function generatePublicKeyFromPrivate(privateKey) {
+    // Simplified public key generation - in production use proper cryptographic libraries
+    return '02' + generateRandomHex(64);
+}
+
+function validateBitcoinPublicKey(publicKey) {
+    // Basic validation for Bitcoin public key format
+    const compressed = /^0[23][0-9a-fA-F]{64}$/;
+    const uncompressed = /^04[0-9a-fA-F]{128}$/;
+    
+    return compressed.test(publicKey) || uncompressed.test(publicKey);
+}
+
 document.getElementById('register-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -97,9 +187,15 @@ document.getElementById('register-form').addEventListener('submit', async functi
         return;
     }
     
-    // Simple validation
-    if (!data.email || !data.password || !data.first_name || !data.last_name) {
+    // Validate required fields
+    if (!data.email || !data.password || !data.first_name || !data.last_name || !data.user_type || !data.bitcoin_public_key) {
         alert('Please fill in all required fields');
+        return;
+    }
+    
+    // Validate Bitcoin public key format
+    if (!validateBitcoinPublicKey(data.bitcoin_public_key.trim())) {
+        alert('Please enter a valid Bitcoin public key (compressed format starting with 02/03 or uncompressed starting with 04)');
         return;
     }
     
@@ -108,11 +204,59 @@ document.getElementById('register-form').addEventListener('submit', async functi
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creating Account...';
     
+    // Store user data in localStorage for demo
+    const userData = {
+        email: data.email,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        userType: data.user_type,
+        bitcoinPublicKey: data.bitcoin_public_key.trim(),
+        createdAt: new Date().toISOString()
+    };
+    
+    // Store in localStorage
+    localStorage.setItem('registeredUser', JSON.stringify(userData));
+    
     // Simulate registration success after a short delay
     setTimeout(() => {
-        alert('Registration successful! You can now login.');
+        alert(`Registration successful! Welcome ${userData.userType === 'notaire' ? 'Notaire' : ''} ${userData.firstName}!`);
         window.location.href = '/auth/login';
     }, 1000);
+});
+
+// Show/hide account type description
+document.getElementById('user_type').addEventListener('change', function() {
+    const description = document.getElementById('account-description');
+    if (this.value === 'notaire') {
+        if (!description) {
+            const desc = document.createElement('div');
+            desc.id = 'account-description';
+            desc.className = 'mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md';
+            desc.innerHTML = `
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Notaire Account Benefits</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Create all contract types (Multi-signature, Escrow, Timelock)</li>
+                                <li>Access advanced Bitcoin contract features</li>
+                                <li>Manage complex legal agreements</li>
+                                <li>Professional contract templates</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.parentNode.appendChild(desc);
+        }
+    } else if (description) {
+        description.remove();
+    }
 });
 </script>
 {% endblock %}

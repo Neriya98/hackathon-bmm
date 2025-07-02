@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Create Rental Contract - SecureDeal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Rental Contract</h1>
+            <p class="mt-2 text-gray-600">Create a secure rental agreement with automated payments</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <form id="rental-form" class="space-y-8">
+                <!-- Contract Title -->
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Contract Title</label>
+                    <input type="text" id="title" name="title" required
+                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="e.g., Apartment Rental Agreement, Office Space Lease">
+                </div>
+
+                <!-- Landlord Information -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Landlord Information</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="landlord_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="landlord_name" name="landlord_name" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="landlord_address" class="block text-sm font-medium text-gray-700">Address</label>
+                            <textarea id="landlord_address" name="landlord_address" rows="2" required
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"></textarea>
+                        </div>
+                        <div>
+                            <label for="landlord_phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <input type="tel" id="landlord_phone" name="landlord_phone" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="landlord_email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="landlord_email" name="landlord_email" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tenant Information -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tenant Information</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="tenant_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="tenant_name" name="tenant_name" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="tenant_address" class="block text-sm font-medium text-gray-700">Current Address</label>
+                            <textarea id="tenant_address" name="tenant_address" rows="2" required
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"></textarea>
+                        </div>
+                        <div>
+                            <label for="tenant_phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <input type="tel" id="tenant_phone" name="tenant_phone" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="tenant_email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input type="email" id="tenant_email" name="tenant_email" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Details -->
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Details</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="property_address" class="block text-sm font-medium text-gray-700">Property Address</label>
+                            <textarea id="property_address" name="property_address" rows="2" required
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                      placeholder="Full address of the rental property..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="property_type" class="block text-sm font-medium text-gray-700">Property Type</label>
+                                <select id="property_type" name="property_type" required
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                                    <option value="">Select type</option>
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="House">House</option>
+                                    <option value="Condo">Condominium</option>
+                                    <option value="Office">Office Space</option>
+                                    <option value="Commercial">Commercial Space</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="property_size" class="block text-sm font-medium text-gray-700">Size (sq ft/m²)</label>
+                                <input type="number" id="property_size" name="property_size" required min="1"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                       placeholder="1000">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="property_description" class="block text-sm font-medium text-gray-700">Property Description</label>
+                            <textarea id="property_description" name="property_description" rows="3"
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                      placeholder="Additional details about the property (furnishing, amenities, etc.)..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rental Terms -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Rental Terms</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="monthly_rent" class="block text-sm font-medium text-gray-700">Monthly Rent (in satoshis)</label>
+                            <input type="number" id="monthly_rent" name="monthly_rent" required min="1"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                   placeholder="5000000">
+                            <p class="mt-1 text-sm text-gray-500">1 BTC = 100,000,000 satoshis</p>
+                        </div>
+                        <div>
+                            <label for="deposit_amount" class="block text-sm font-medium text-gray-700">Security Deposit (in satoshis)</label>
+                            <input type="number" id="deposit_amount" name="deposit_amount" required min="0"
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                   placeholder="5000000">
+                        </div>
+                        <div>
+                            <label for="lease_duration" class="block text-sm font-medium text-gray-700">Lease Duration</label>
+                            <select id="lease_duration" name="lease_duration" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                                <option value="">Select duration</option>
+                                <option value="6 months">6 Months</option>
+                                <option value="1 year">1 Year</option>
+                                <option value="2 years">2 Years</option>
+                                <option value="month-to-month">Month-to-Month</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="start_date" class="block text-sm font-medium text-gray-700">Lease Start Date</label>
+                            <input type="date" id="start_date" name="start_date" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                            <select id="payment_method" name="payment_method" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                                <option value="bitcoin_auto">Automated Bitcoin Payment</option>
+                                <option value="bitcoin_manual">Manual Bitcoin Payment</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="payment_day" class="block text-sm font-medium text-gray-700">Monthly Payment Due Day</label>
+                            <select id="payment_day" name="payment_day" required
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                                <option value="">Select day</option>
+                                <option value="1">1st of month</option>
+                                <option value="5">5th of month</option>
+                                <option value="15">15th of month</option>
+                                <option value="30">30th of month</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Terms -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Additional Terms</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="pets_allowed" name="pets_allowed" value="yes"
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="pets_allowed" class="ml-2 text-sm text-gray-700">Pets allowed</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="smoking_allowed" name="smoking_allowed" value="yes"
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="smoking_allowed" class="ml-2 text-sm text-gray-700">Smoking allowed</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="furnished" name="furnished" value="yes"
+                                   class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded">
+                            <label for="furnished" class="ml-2 text-sm text-gray-700">Property is furnished</label>
+                        </div>
+                        <div>
+                            <label for="additional_terms" class="block text-sm font-medium text-gray-700">Additional Terms & Conditions</label>
+                            <textarea id="additional_terms" name="additional_terms" rows="3"
+                                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                      placeholder="Any additional terms, conditions, or special agreements..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-between pt-4">
+                    <a href="/contracts/create" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700">
+                        Generate Contract
+                        <svg class="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('rental-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const contractData = Object.fromEntries(formData);
+    contractData.contract_type = 'rental';
+    contractData.id = 'contract_' + Date.now();
+    contractData.created_at = new Date().toISOString();
+    contractData.status = 'draft';
+    
+    // Handle checkboxes
+    contractData.pets_allowed = document.getElementById('pets_allowed').checked;
+    contractData.smoking_allowed = document.getElementById('smoking_allowed').checked;
+    contractData.furnished = document.getElementById('furnished').checked;
+    
+    // Store contract data temporarily
+    localStorage.setItem('contractData', JSON.stringify(contractData));
+    
+    // Redirect to contract preview/generation
+    window.location.href = '/contracts/preview';
+});
+
+// Auto-calculate security deposit as one month's rent
+document.getElementById('monthly_rent').addEventListener('input', function() {
+    const monthlyRent = parseInt(this.value) || 0;
+    const depositField = document.getElementById('deposit_amount');
+    if (monthlyRent > 0 && !depositField.value) {
+        // Suggest one month's rent as deposit
+        depositField.value = monthlyRent;
+    }
+});
+
+// Set minimum start date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start_date').min = today;
+});
+</script>
+{% endblock %}

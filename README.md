@@ -119,6 +119,29 @@ hackathon-bmm/
 └── 📄 config.py              # Configuration Flask
 ```
 
+## 🏗️ Project Structure
+
+```
+app/                  # Main application package
+├── api/              # API endpoints and logic
+├── models/           # Database models
+├── routes/           # Web routes (auth, contracts, invitations, main)
+├── services/         # Service layer with business logic
+├── static/           # Static assets (CSS, JS, images)
+│   ├── css/          # CSS files (Tailwind)
+│   ├── js/           # JavaScript files
+│   │   └── contract_templates/ # Contract JSON templates
+└── templates/        # HTML templates
+    ├── auth/         # Authentication templates
+    ├── contract_templates/ # Contract HTML templates
+    ├── contracts/    # Contract management templates
+    └── partials/     # Reusable template parts
+
+rust_core/            # Rust module with Python bindings (reference)
+├── src/              # Rust source code
+tests/                # Application tests
+```
+
 ## 🔄 Workflow Utilisateur
 
 ### 1. **Inscription/Connexion**

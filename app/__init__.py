@@ -93,13 +93,19 @@ def create_app(config_object='config.DevelopmentConfig'):
     
     # Enregistrer les blueprints
     from app.api import auth, contracts, psbt, notifications
-    from app.routes import main
+    from app.routes import main, auth as auth_routes, contracts as contracts_routes, invitations as invitations_routes
     
+    # API blueprints
     app.register_blueprint(auth.bp, url_prefix='/api/auth')
     app.register_blueprint(contracts.bp, url_prefix='/api/contracts')
     app.register_blueprint(psbt.bp, url_prefix='/api/psbt')
     app.register_blueprint(notifications.bp, url_prefix='/api/notifications')
+    
+    # Route blueprints
     app.register_blueprint(main.bp)
+    app.register_blueprint(auth_routes.bp)
+    app.register_blueprint(contracts_routes.bp)
+    app.register_blueprint(invitations_routes.bp)
     
     # Handlers d'erreur
     setup_error_handlers(app)

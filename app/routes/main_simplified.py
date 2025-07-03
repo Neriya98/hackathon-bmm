@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, jsonify
-from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
@@ -35,11 +34,11 @@ def health():
             'status': 'healthy',
             'service': 'SecureDeal',
             'version': '1.0.0',
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
         }), 200
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': __import__('datetime').datetime.utcnow().isoformat()
         }), 503

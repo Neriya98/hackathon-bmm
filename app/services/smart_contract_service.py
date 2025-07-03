@@ -36,6 +36,38 @@ class SmartContractService:
             logger.error(f"Blockchain service health check failed: {e}")
             return False
     
+    def create_smart_contract_from_data(self, contract_data: Dict) -> Optional[Dict]:
+        """Create a smart contract directly from contract data using the Rust backend"""
+        try:
+            # Create smart contract payload based on provided data
+            payload = {
+                "contract_type": contract_data.get('type', 'multisig'),
+                "participants": contract_data.get('participants', []),
+                "amount": contract_data.get('amount', 0),
+                "network": contract_data.get('network', 'signet')
+            }
+            
+            # Add timelock if provided
+            if 'timelock' in contract_data:
+                payload["timelock"] = contract_data['timelock']
+            
+            # Call blockchain service
+            response = self.session.post(
+                f"{self.blockchain_service_url}/create_smart_contract",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Error from blockchain service: {response.text}")
+                return None
+                
+            return response.json()
+            
+        except Exception as e:
+            logger.error(f"Error creating smart contract from data: {e}")
+            return None
+    
     def create_smart_contract(self, contract_id: str) -> Optional[Dict]:
         """Create smart contract when all signatures are collected"""
         try:
@@ -126,6 +158,38 @@ class SmartContractService:
             logger.error(f"Error creating smart contract for {contract_id}: {e}")
             return None
     
+    def create_smart_contract_from_data(self, contract_data: Dict) -> Optional[Dict]:
+        """Create a smart contract directly from contract data using the Rust backend"""
+        try:
+            # Create smart contract payload based on provided data
+            payload = {
+                "contract_type": contract_data.get('type', 'multisig'),
+                "participants": contract_data.get('participants', []),
+                "amount": contract_data.get('amount', 0),
+                "network": contract_data.get('network', 'signet')
+            }
+            
+            # Add timelock if provided
+            if 'timelock' in contract_data:
+                payload["timelock"] = contract_data['timelock']
+            
+            # Call blockchain service
+            response = self.session.post(
+                f"{self.blockchain_service_url}/create_smart_contract",
+                json=payload,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Error from blockchain service: {response.text}")
+                return None
+                
+            return response.json()
+            
+        except Exception as e:
+            logger.error(f"Error creating smart contract from data: {e}")
+            return None
+    
     def generate_payment_link(self, contract: Contract, smart_contract_data: Dict) -> str:
         """Generate payment link for the contract"""
         address = smart_contract_data.get('address')
@@ -209,7 +273,7 @@ class SmartContractService:
                 current_balance = balance_data.get('total_balance', 0)
                 
                 # Check if payment received
-                expected_amount_sats = int((contract.payment_amount_btc or 0) * 100_000_000)
+                expected_amount_sats = contract.amount_sats
                 
                 if current_balance >= expected_amount_sats:
                     # Payment received!
@@ -254,37 +318,33 @@ class SmartContractService:
                 notification_data = {
                     'type': 'payment_completed',
                     'title': 'Contract Payment Received',
-                    'message': f'Payment has been received for contract "{contract.title}". The contract is now complete.',
-                    'contract_id': contract.public_id,
-                    'payment_amount': contract.actual_payment_amount,
-                    'recipient_email': creator.email
+                    'message': f"Payment has been received for contract '{contract.title}'. The contract is now complete"
                 }
-                notification_service.create_payment_completion_notification(notification_data)
-            
-            # Notify all invited parties
+                notification_service.create_notification(
+                    user_id=creator.id, 
+                    notification_type='payment_completed',
+                    title=notification_data['title'],
+                    message=notification_data['message']
+                )
+                
+            # Notify other participants
             for invitation in invitations:
-                notification_data = {
-                    'type': 'payment_completed',
-                    'title': 'Contract Payment Received',
-                    'message': f'Payment has been received for contract "{contract.title}". The contract is now complete.',
-                    'contract_id': contract.public_id,
-                    'payment_amount': contract.actual_payment_amount,
-                    'recipient_email': invitation.recipient_email
-                }
-                notification_service.create_payment_completion_notification(notification_data)
-            
-            logger.info(f"Payment completion notifications sent for contract {contract.public_id}")
-            
+                if invitation.status == 'accepted':
+                    recipient = User.query.filter_by(email=invitation.recipient_email).first()
+                    if recipient:
+                        notification_data = {
+                            'type': 'payment_completed',
+                            'title': 'Contract Payment Received',
+                            'message': f"Payment has been received for contract '{contract.title}'. The contract is now complete"
+                        }
+                        notification_service.create_notification(
+                            user_id=recipient.id,
+                            notification_type='payment_completed',
+                            title=notification_data['title'],
+                            message=notification_data['message']
+                        )
         except Exception as e:
-            logger.error(f"Error sending payment completion notifications: {e}")
-    
-    def notify_smart_contract_creation(self, contract: Contract):
-        """Notify all parties when smart contract is created"""
-        try:
-            from app.services.notification_service import notification_service
-            notification_service.create_smart_contract_created_notification(contract)
-        except Exception as e:
-            logger.error(f"Error notifying smart contract creation: {e}")
+            logger.error(f"Error notifying payment completion: {e}")
 
 
 class ContractSignatureMonitor:

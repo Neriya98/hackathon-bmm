@@ -1,29 +1,35 @@
-# Rust Core Implementation Status
+# Rust Backend Implementation
 
-The `rust_core` folder contains a Rust module with Python bindings for Bitcoin PSBT and smart contract functionality. This is a critical part of the application's architecture for handling Bitcoin smart contracts.
+The project now uses a standalone Rust backend service in the `blockchain_services` folder that provides Bitcoin wallet and smart contract functionality through an HTTP API.
 
 ## Current Status
-- The Rust module needs to be built and installed to enable the smart contract functionality
-- All imports and calls to this module are currently commented out with 'Temporarily disabled' notes
-- The application is temporarily using a Python implementation as a placeholder
+- The Rust backend runs as a separate service exposing an HTTP API on port 3000
+- The Flask application communicates with this backend through the `SmartContractService` class
+- All blockchain and Bitcoin operations should be handled by this Rust backend
 
-## Enabling the Rust Core
-To enable the Rust core implementation:
+## Running the Rust Backend
+To run the Rust backend service:
 
-1. Build the Rust extension:
+1. Navigate to the blockchain_services directory:
    ```
-   python run.py build-rust
-   ```
-
-2. Install the built Rust extension:
-   ```
-   python run.py install-rust
+   cd blockchain_services
    ```
 
-3. Uncomment the imports and function calls in:
-   - `app/api/contracts.py`
-   - `app/api/psbt.py`
-   - `app/api/psbt_simple.py`
+2. Build and run the service:
+   ```
+   cargo run
+   ```
+
+3. The service will be available at http://localhost:3000
 
 ## Architecture Note
-The Python Flask application serves as the frontend and application layer, while the Rust implementation handles the core Bitcoin smart contract functionality for better performance and security.
+The Python Flask application serves as the frontend and application layer, while the Rust backend handles the core Bitcoin smart contract functionality for better performance and security.
+
+## API Endpoints
+The Rust backend provides the following endpoints:
+
+- `GET /` - Welcome message
+- `GET /create_wallet` - Create a new wallet
+- `POST /create_smart_contract` - Create a custom multisig smart contract
+- `POST /check_balance` - Check balance of an address
+- `POST /send_coins` - Send coins from wallet

@@ -29,12 +29,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy Rust project files
-COPY rust_core/ ./rust_core/
+COPY blockchain_services/ ./blockchain_services/
 
-# Build and install Rust extension
-WORKDIR /app/rust_core
-RUN maturin build --release
-RUN pip install target/wheels/*.whl
+# Build Rust backend
+WORKDIR /app/blockchain_services
+RUN cargo build --release
 
 # Go back to app directory
 WORKDIR /app

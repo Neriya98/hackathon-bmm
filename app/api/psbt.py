@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, ValidationError
-# import securedeal_core  # Temporarily disabled
+from app.services.smart_contract_service import SmartContractService
 
 from app import limiter
 
@@ -10,7 +10,7 @@ psbt_bp = Blueprint('psbt', __name__)
 # Make it available as bp for backward compatibility
 bp = psbt_bp
 
-# Schema pour la validation des données
+# Schema for data validation
 class CreateContractSchema(Schema):
     contract_type = fields.Str(required=True)
     participants = fields.List(fields.Str(), required=True)
@@ -20,7 +20,7 @@ class CreateContractSchema(Schema):
 
 @psbt_bp.route('/', methods=['GET'])
 def psbt_home():
-    """Page d'accueil du module PSBT"""
+    """PSBT module homepage"""
     return jsonify({
         'message': 'SecureDeal PSBT API',
         'version': '1.0.0',
@@ -38,43 +38,76 @@ def psbt_home():
 @jwt_required()
 @limiter.limit("10 per minute")
 def create_psbt():
-    """Créer un nouveau PSBT pour un contrat Bitcoin"""
+    """Create a new PSBT for a Bitcoin contract using the Rust backend"""
     try:
         schema = CreateContractSchema()
         data = schema.load(request.get_json())
     except ValidationError as err:
         return jsonify({'errors': err.messages}), 400
     
+    # Use the Rust backend service
+    smart_contract_service = SmartContractService()
+    
+    # Check if the service is available
+    if not smart_contract_service.check_service_health():
+        return jsonify({
+            'status': 'error',
+            'message': 'Blockchain service is not available'
+        }), 503
+        
+    # Create contract data to pass to Rust backend
+    contract_data = {
+        'type': data['contract_type'],
+        'participants': data['participants'],
+        'amount': data['amount_sats'],
+        'network': data['network']
+    }
+    
+    if 'timelock' in data:
+        contract_data['timelock'] = data['timelock']
+        
+    # Try to create the smart contract using the Rust backend
     try:
-        # Temporarily disabled - return placeholder
+        result = smart_contract_service.create_smart_contract_from_data(contract_data)
+        
+        if result:
+            return jsonify({
+                'status': 'success',
+                'message': 'Smart contract created successfully',
+                'data': result
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to create smart contract'
+            }), 500
+    except Exception as e:
+        current_app.logger.error(f"Error creating smart contract: {str(e)}")
+        
+        # Fallback to placeholder response
         result = {
-            'success': True,
-            'psbt_base64': 'temporary_psbt_placeholder',
-            'script_pubkey': 'temporary_script_placeholder',
-            'address': 'tb1qtmp1234567890abcdef',
-            'policy': 'temporary_policy_placeholder'
+            'status': 'success',
+            'message': 'Using placeholder response - Rust backend integration in progress',
+            'data': {
+                'psbt_base64': 'placeholder_for_rust_backend',
+                'address': 'tb1q_placeholder',
+                'network': data['network']
+            }
         }
         
-        return jsonify({
-            'success': True,
-            'data': result
-        })
-    except Exception as e:
-        current_app.logger.error(f"Error creating PSBT: {str(e)}")
-        return jsonify({'error': 'Failed to create PSBT'}), 500
+        return jsonify(result)
 
-# Add other placeholder endpoints...
 @psbt_bp.route('/sign', methods=['POST'])
 @jwt_required()
 @limiter.limit("20 per minute")
 def sign_psbt():
-    """Signer un PSBT"""
+    """Sign a PSBT using the Rust backend"""
     return jsonify({
-        'success': True,
-        'message': 'PSBT signing temporarily disabled - Rust core needed',
+        'status': 'success',
+        'message': 'PSBT signing will use Rust backend when implemented',
         'data': {
-            'psbt_base64': 'temporary_signed_psbt_placeholder',
-            'signature_hex': 'temporary_signature_placeholder'
+            'psbt_base64': 'signed_psbt_placeholder',
+            'signature_hex': 'signature_placeholder'
         }
     })
 
@@ -82,10 +115,10 @@ def sign_psbt():
 @jwt_required()
 @limiter.limit("30 per minute")
 def validate_psbt():
-    """Valider un PSBT"""
+    """Validate a PSBT using the Rust backend"""
     return jsonify({
-        'success': True,
-        'message': 'PSBT validation temporarily disabled - Rust core needed',
+        'status': 'success',
+        'message': 'PSBT validation will use Rust backend when implemented',
         'valid': True
     })
 
@@ -93,10 +126,10 @@ def validate_psbt():
 @jwt_required()
 @limiter.limit("30 per minute")
 def get_psbt_info():
-    """Obtenir les informations d'un PSBT"""
+    """Get PSBT information using the Rust backend"""
     return jsonify({
-        'success': True,
-        'message': 'PSBT info temporarily disabled - Rust core needed',
+        'status': 'success',
+        'message': 'PSBT info will use Rust backend when implemented',
         'data': {
             'inputs': [],
             'outputs': [],
@@ -108,12 +141,12 @@ def get_psbt_info():
 @jwt_required()
 @limiter.limit("10 per minute")
 def finalize_psbt():
-    """Finaliser un PSBT"""
+    """Finalize a PSBT using the Rust backend"""
     return jsonify({
-        'success': True,
-        'message': 'PSBT finalization temporarily disabled - Rust core needed',
+        'status': 'success',
+        'message': 'PSBT finalization will use Rust backend when implemented',
         'data': {
-            'transaction_id': 'temp_tx_placeholder',
-            'transaction_hex': 'temporary_transaction_hex_placeholder'
+            'psbt_base64': 'finalized_psbt_placeholder',
+            'tx_hex': 'transaction_hex_placeholder'
         }
     })

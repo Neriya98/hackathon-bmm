@@ -15,17 +15,17 @@
    - Removed backup files, logs, `__pycache__` directories, and redundant test scripts
    - Removed duplicate template files
 
-4. **Rust Module Status**
-   - The `rust_core/` directory contains a Rust module with Python bindings for Bitcoin PSBT and smart contract functionality
-   - However, all imports and calls to this module are currently commented out with "Temporarily disabled" notes
-   - The application appears to use a Python implementation for the same functionality
+4. **Rust Backend Status**
+   - The `blockchain_services/` directory contains a Rust backend service that provides Bitcoin wallet and smart contract functionality via HTTP API
+   - The Flask app communicates with this Rust backend through the `SmartContractService` class
+   - All blockchain operations should be delegated to this Rust backend for better performance and security
 
 ## Next Steps
 
-1. **Decision on `rust_core/`**
-   - Keep this directory as a reference for future Rust integration
-   - All imports and function calls to the Rust module are currently disabled
-   - The application is functioning with the Python implementation
+1. **Complete Migration to Rust Backend**
+   - All smart contract and blockchain operations should be handled by the Rust backend
+   - Update all Python placeholder implementations to use the Rust backend API
+   - Remove any remaining references to the obsolete `rust_core` module
 
 2. **Complete Documentation**
    - Update README with new project structure

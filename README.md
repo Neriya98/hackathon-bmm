@@ -104,14 +104,12 @@ hackathon-bmm/
 │   ├── 📁 templates/          # Templates Jinja2
 │   ├── 📁 static/             # Assets statiques
 │   └── 📄 __init__.py         # Factory Flask
-├── 📁 rust_core/              # Module Rust PSBT
+├── 📁 blockchain_services/    # Service Rust pour les opérations blockchain
 │   ├── 📄 Cargo.toml         # Config Rust
-│   ├── 📄 pyproject.toml     # Config PyO3
 │   └── 📁 src/               # Code Rust
 ├── 📁 tests/                  # Tests automatisés
-├── 📁 migrations/             # Migrations DB
-├── 📁 docker/                 # Configuration Docker
-├── 📁 scripts/                # Scripts utilitaires
+├── 📁 instance/               # Données d'instance (BD SQLite)
+├── 📁 notes/                  # Documentation du projet
 ├── 📄 requirements.txt        # Dépendances Python
 ├── 📄 package.json           # Dépendances Node.js
 ├── 📄 docker-compose.yml     # Services Docker
@@ -137,8 +135,11 @@ app/                  # Main application package
     ├── contracts/    # Contract management templates
     └── partials/     # Reusable template parts
 
-rust_core/            # Rust module with Python bindings (reference)
+blockchain_services/  # Rust backend for blockchain operations
 ├── src/              # Rust source code
+    ├── main.rs       # HTTP API server
+    └── handlers.rs   # Bitcoin functionality
+
 tests/                # Application tests
 ```
 

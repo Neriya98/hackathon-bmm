@@ -1,7 +1,7 @@
 {
-  "name": "securedeal-frontend",
+  "name": "dealsure-frontend",
   "version": "1.0.0",
-  "description": "Frontend assets for SecureDeal Bitcoin contracts platform",
+  "description": "Frontend assets for DealSure Bitcoin contracts platform",
   "scripts": {
     "dev": "npm run css:dev && concurrently \"npm run css:watch\" \"flask run --debug\"",
     "build": "npm run css:build && npm run js:build",
@@ -11,8 +11,9 @@
     "js:build": "echo 'JavaScript already in place at app/static/js/app.js'",
     "js:watch": "echo 'JavaScript watch mode - not implemented'",
     "clean": "rm -rf app/static/css/output.css",
-    "install:rust": "cd rust_core && maturin build --release && pip install target/wheels/*.whl",
-    "docker:build": "docker build -t securedeal .",
+    "build:rust": "cd blockchain_services && cargo build --release",
+    "run:rust": "cd blockchain_services && cargo run",
+    "docker:build": "docker build -t dealsure .",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down"
   },

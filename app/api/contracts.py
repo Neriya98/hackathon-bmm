@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, ValidationError
 from datetime import datetime, timedelta
-# import securedeal_core  # Temporarily disabled
+from app.services.smart_contract_service import SmartContractService
 
 from app import db, limiter
 from app.models.user import User

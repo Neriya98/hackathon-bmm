@@ -1,8 +1,8 @@
-# SecureDeal - Complete Bitcoin Contract Solution
+# DealSure - Complete Bitcoin Contract Solution
 
 ## 🎯 Solution Overview
 
-SecureDeal is a complete Bitcoin-based contract management platform that enables:
+DealSure is a complete Bitcoin-based contract management platform that enables:
 
 1. **User Registration** with Bitcoin public keys
 2. **Role-based Contract Creation** (Notaire vs User)

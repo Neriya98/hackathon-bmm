@@ -1,5 +1,5 @@
-// SecureDeal Frontend Application
-class SecureDealApp {
+// DealSure Frontend Application
+class DealSureApp {
     constructor() {
         this.apiBase = '/api/v1';
         this.csrfToken = window.csrfToken;
@@ -519,10 +519,10 @@ class SecureDealApp {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    window.app = new SecureDealApp();
+    window.app = new DealSureApp();
 });
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SecureDealApp;
+    module.exports = DealSureApp;
 }

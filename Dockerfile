@@ -49,7 +49,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 COPY package.json ./
 # Use npm install instead of npm ci since we don't have package-lock.json
 RUN npm install
-RUN npm run build:css
+RUN npm run css:build
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash app
@@ -64,7 +64,7 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # Default command
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "app:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "run:app"]
 
 # Development stage
 FROM base as development
@@ -76,4 +76,4 @@ CMD ["flask", "run", "--host=0.0.0.0", "--port=5000", "--debug"]
 # Production stage
 FROM base as production
 ENV FLASK_ENV=production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "run:app"]

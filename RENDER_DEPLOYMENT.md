@@ -8,6 +8,16 @@ This guide provides step-by-step instructions for deploying the DealSure applica
 - Your DealSure codebase pushed to a Git repository (GitHub, GitLab, or Bitbucket)
 - Git repository connected to your Render account
 
+## Preparation
+
+Before deploying to Render, you should:
+
+1. **Ensure the Dockerfile is correct**
+   
+   The Dockerfile has been updated to use:
+   - `npm run css:build` instead of `npm run build:css`
+   - `gunicorn run:app` instead of `gunicorn app:create_app()`
+
 ## Deployment Options
 
 ### Option 1: Automatic Deployment with render.yaml (Recommended)

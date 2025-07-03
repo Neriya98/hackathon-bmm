@@ -6,15 +6,9 @@ use axum::{
 };
 use std::net::SocketAddr;
 use handlers::{create_wallet, create_smart_contract, root , check_balance , send_coins};
-use log::{info, warn, error};
 
 #[tokio::main]
 async fn main() {
-    // Initialize logger from RUST_LOG environment variable
-    env_logger::init();
-    
-    info!("Starting blockchain services backend");
-    
     // Set up routes
     let app = Router::new()
         .route("/", get(root))

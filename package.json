@@ -1,7 +1,7 @@
 {
-  "name": "dealsure-frontend",
+  "name": "securedeal-frontend",
   "version": "1.0.0",
-  "description": "Frontend assets for DealSure Bitcoin contracts platform",
+  "description": "Frontend assets for SecureDeal Bitcoin contracts platform",
   "scripts": {
     "dev": "npm run css:dev && concurrently \"npm run css:watch\" \"flask run --debug\"",
     "build": "npm run css:build && npm run js:build",
@@ -13,7 +13,7 @@
     "clean": "rm -rf app/static/css/output.css",
     "build:rust": "cd blockchain_services && cargo build --release",
     "run:rust": "cd blockchain_services && cargo run",
-    "docker:build": "docker build -t dealsure .",
+    "docker:build": "docker build -t securedeal .",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down"
   },

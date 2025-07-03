@@ -1,33 +1,33 @@
-# 🔐 SecureDeal - Bitcoin Smart Contracts Platform
+# 🔐 DealSure - Bitcoin Smart Contracts Platform
 
-SecureDeal est une plateforme web professionnelle construite avec Flask/Python et Rust pour créer, gérer et exécuter des contrats Bitcoin sécurisés via PSBT (Partially Signed Bitcoin Transactions).
+DealSure (formerly SecureDeal) is a professional web platform built with Flask/Python and Rust for creating, managing, and executing secure Bitcoin contracts via PSBT (Partially Signed Bitcoin Transactions).
 
-## 🎯 Fonctionnalités
+## 🎯 Features
 
-- ✅ **Authentification sécurisée** avec JWT et validation email
-- ✅ **Création de contrats Bitcoin** via PSBT et scripts Rust optimisés  
-- ✅ **Invitations collaboratives** par email avec liens sécurisés
-- ✅ **Signature multi-parties** avec validation cryptographique
-- ✅ **Déblocage automatique** des fonds après conditions remplies
-- ✅ **Interface moderne** avec Tailwind CSS et animations Velocity.js
-- ✅ **API REST complète** documentée avec Swagger/OpenAPI
+- ✅ **Secure authentication** with JWT and email validation
+- ✅ **Bitcoin contract creation** via PSBT and optimized Rust scripts  
+- ✅ **Collaborative invitations** by email with secure links
+- ✅ **Multi-party signatures** with cryptographic validation
+- ✅ **Automatic fund release** after conditions are met
+- ✅ **Modern interface** with Tailwind CSS and Velocity.js animations
+- ✅ **Complete REST API** documented with Swagger/OpenAPI
 
-## 🛠️ Stack Technique
+## 🛠️ Technical Stack
 
 ### Backend
-- **Flask 3.0** - Framework web Python moderne
-- **SQLAlchemy 2.0** - ORM avec support async
-- **PyO3/Maturin** - Binding Python-Rust haute performance
-- **PostgreSQL** - Base de données robuste
-- **Redis** - Cache et sessions
-- **Celery** - Tâches asynchrones
-- **JWT** - Authentification stateless
+- **Flask 3.0** - Modern Python web framework
+- **SQLAlchemy 2.0** - ORM with async support
+- **PyO3/Maturin** - High-performance Python-Rust binding
+- **PostgreSQL** - Robust database
+- **Redis** - Cache and sessions
+- **Celery** - Asynchronous tasks
+- **JWT** - Stateless authentication
 
 ### Rust Core
-- **BDK (Bitcoin Dev Kit)** - Outils Bitcoin natifs
-- **Miniscript** - Scripts Bitcoin optimisés
-- **PyO3** - Bindings Python natifs
-- **Tokio** - Runtime async
+- **BDK (Bitcoin Dev Kit)** - Native Bitcoin tools
+- **Miniscript** - Optimized Bitcoin scripts
+- **PyO3** - Native Python bindings
+- **Tokio** - Async runtime
 
 ### Frontend
 - **Tailwind CSS 3.3** - Framework CSS utilitaire
@@ -239,41 +239,16 @@ mypy app/                  # Type checking
 
 ## 🚀 Déploiement
 
-### Docker Compose (Développement)
-```bash
-docker-compose up -d
-```
+### Render Cloud Deployment
 
-### Production (exemple AWS/DigitalOcean)
-```bash
-docker build -t securedeal:latest .
-docker run -p 80:5000 --env-file .env securedeal:latest
-```
+See the [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) file for detailed instructions on deploying to Render.
 
-### Variables d'Environnement
-```bash
-# Base
-SECRET_KEY=your-super-secret-key
-DATABASE_URL=postgresql://user:pass@db:5432/securedeal
-REDIS_URL=redis://redis:6379/0
-
-# Bitcoin
-BITCOIN_NETWORK=signet
-BITCOIN_RPC_URL=https://blockstream.info/signet/api/
-
-# Email
-MAIL_SERVER=smtp.gmail.com
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-
-# Security
-JWT_SECRET_KEY=jwt-secret-key
-```
-
-## 🚀 Production Deployment
+In short:
+1. Connect your repository to Render
+2. Render will detect the `render.yaml` file and automatically set up all required services
+3. Review settings and deploy
 
 ### Docker Production Deployment
-
 ```bash
 # Build production image
 docker build --target production -t securedeal:latest .

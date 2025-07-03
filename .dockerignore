@@ -1,0 +1,48 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Virtual environments
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+
+# Rust build artifacts
+blockchain_services/target
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Local development
+instance
+*.db
+*.sqlite
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Documentation
+docs
+*.md
+!README.md
+!RENDER_DEPLOYMENT.md
+
+# Temp files
+*.log
+.DS_Store
+temp
+tmp

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DealSure Application Entry Point
+SecureDeal Application Entry Point
 Professional Bitcoin Contract Management Platform
 """
 
@@ -94,17 +94,12 @@ def build_rust():
     
     rust_dir = os.path.join(os.path.dirname(__file__), 'blockchain_services')
     
-    # Set up environment for the Rust build
-    env = os.environ.copy()
-    
     try:
         # Build with cargo
-        print("Building Rust backend...")
         result = subprocess.run(['cargo', 'build', '--release'], 
                               cwd=rust_dir, 
                               capture_output=True, 
-                              text=True,
-                              env=env)
+                              text=True)
         
         if result.returncode == 0:
             print("Rust backend built successfully!")
@@ -126,21 +121,12 @@ def run_rust_backend():
     
     rust_dir = os.path.join(os.path.dirname(__file__), 'blockchain_services')
     
-    # Set up environment for the Rust backend
-    env = os.environ.copy()
-    
-    # Ensure RUST_LOG is set (default to info if not present)
-    if 'RUST_LOG' not in env:
-        env['RUST_LOG'] = 'info'
-    
     try:
-        # Run the backend with the proper environment
-        print(f"Starting Rust backend with RUST_LOG={env['RUST_LOG']}")
+        # Run the backend
         result = subprocess.run(['cargo', 'run'], 
                               cwd=rust_dir, 
-                              capture_output=False,
-                              text=True,
-                              env=env)
+                              capture_output=False, 
+                              text=True)
         
         if result.returncode != 0:
             print("Rust backend exited with an error.")
@@ -213,94 +199,5 @@ def lint_code():
     except FileNotFoundError:
         print("Error: flake8 not found. Please install it with: pip install flake8")
 
-@cli.command("run-all")
-def run_all():
-    """Run both the Flask app and Rust backend in parallel."""
-    import subprocess
-    import threading
-    import time
-    
-    def run_rust():
-        # Run the Rust backend
-        print("Starting Rust backend...")
-        run_rust_backend()
-    
-    def run_flask():
-        # Wait briefly to let Rust backend initialize
-        time.sleep(2)
-        print("Starting Flask application...")
-        os.environ['FLASK_APP'] = 'app'
-        os.environ['FLASK_ENV'] = 'development'
-        os.system('flask run')
-    
-    # Start Rust backend in a separate thread
-    rust_thread = threading.Thread(target=run_rust)
-    rust_thread.daemon = True
-    rust_thread.start()
-    
-    # Run Flask in the main thread
-    run_flask()
-
-@cli.command("check-env")
-def check_environment():
-    """Check if all required environment variables are set."""
-    try:
-        from dotenv import load_dotenv
-    except ImportError:
-        print("❌ python-dotenv package not installed. Please run:")
-        print("pip install python-dotenv")
-        return
-    
-    # Load environment variables from .env file
-    load_dotenv()
-    
-    # Required variables for basic functionality
-    required_vars = [
-        'FLASK_ENV',
-        'SECRET_KEY',
-        'DATABASE_URL',
-        'JWT_SECRET_KEY',
-        'BITCOIN_NETWORK',
-        'BITCOIN_RPC_URL',
-        'LOG_LEVEL',
-        'RUST_LOG'
-    ]
-    
-    # Optional variables that enhance functionality
-    optional_vars = [
-        'MAIL_SERVER',
-        'MAIL_PORT',
-        'MAIL_USERNAME',
-        'MAIL_PASSWORD',
-        'REDIS_URL',
-        'CELERY_BROKER_URL',
-        'API_TITLE',
-        'API_VERSION',
-        'MAX_CONTENT_LENGTH',
-        'UPLOAD_FOLDER'
-    ]
-    
-    missing = []
-    for var in required_vars:
-        if not os.environ.get(var):
-            missing.append(var)
-    
-    if missing:
-        print("❌ Missing required environment variables:")
-        for var in missing:
-            print(f"  - {var}")
-        print("\nPlease add these to your .env file.")
-    else:
-        print("✅ All required environment variables are set.")
-    
-    # Check optional variables
-    missing_optional = []
-    for var in optional_vars:
-        if not os.environ.get(var):
-            missing_optional.append(var)
-    
-    if missing_optional:
-        print("\nℹ️ The following optional environment variables are not set:")
-        for var in missing_optional:
-            print(f"  - {var}")
-        print("\nThese are not required for basic functionality but may be needed for some features.")
+if __name__ == '__main__':
+    cli()

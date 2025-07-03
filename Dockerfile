@@ -46,8 +46,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs
 
 # Install frontend dependencies and build CSS
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+# Use npm install instead of npm ci since we don't have package-lock.json
+RUN npm install
 RUN npm run build:css
 
 # Create non-root user

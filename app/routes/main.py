@@ -5,7 +5,7 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
-    """Homepage of DealSure"""
+    """Homepage of SecureDeal"""
     return render_template('index.html')
 
 @bp.route('/dashboard')

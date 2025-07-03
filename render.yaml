@@ -1,0 +1,96 @@
+services:
+  # Web service
+  - type: web
+    name: dealsure
+    env: docker
+    plan: starter
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    buildFilter:
+      paths:
+        - app/**
+        - blockchain_services/**
+        - requirements.txt
+        - package.json
+        - Dockerfile
+        - tailwind.config.js
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: SESSION_COOKIE_HTTPONLY
+        value: true
+      - key: SESSION_COOKIE_SAMESITE
+        value: Lax
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_TO_STDOUT
+        value: true
+      - key: BITCOIN_NETWORK
+        value: signet
+      - key: BITCOIN_RPC_URL
+        value: https://blockstream.info/signet/api/
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dealsure-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: dealsure-redis
+          property: connectionString
+
+  # Background worker for Celery
+  - type: worker
+    name: dealsure-worker
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    branch: main
+    buildCommand: docker build --target=production .
+    startCommand: celery -A app.celery worker --loglevel=info
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dealsure-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: dealsure-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: dealsure-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: dealsure-redis
+          property: connectionString
+
+# Database
+databases:
+  - name: dealsure-db
+    plan: starter
+    databaseName: dealsure
+    user: dealsure
+
+# Redis for caching and message queue
+services:
+  - type: redis
+    name: dealsure-redis
+    plan: starter
+    ipAllowList: []

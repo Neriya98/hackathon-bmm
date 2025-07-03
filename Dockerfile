@@ -48,8 +48,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
 # Install frontend dependencies and build CSS
 COPY package.json ./
 # Use npm install instead of npm ci since we don't have package-lock.json
-RUN npm install
-RUN npm run css:build
+RUN npm install --no-audit --no-fund
+# Try to build CSS, if it fails try installing missing dependencies
+RUN npm run css:build || (npm install @tailwindcss/aspect-ratio && npm run css:build)
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash app

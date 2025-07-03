@@ -14,9 +14,11 @@ Before deploying to Render, you should:
 
 1. **Ensure the Dockerfile is correct**
    
-   The Dockerfile has been updated to use:
-   - `npm run css:build` instead of `npm run build:css`
-   - `gunicorn run:app` instead of `gunicorn app:create_app()`
+   The Dockerfile has been updated to:
+   - Use `npm run css:build` instead of `npm run build:css`
+   - Use `gunicorn run:app` instead of `gunicorn app:create_app()`
+   - Install the missing `@tailwindcss/aspect-ratio` dependency if needed
+   - Add a fallback mechanism to automatically install missing npm dependencies
 
 ## Deployment Options
 

@@ -11,9 +11,13 @@ module.exports = {
         'bitcoin-orange': '#f7931a',
         'bitcoin-orange-dark': '#e6820e',
         'bitcoin-orange-light': '#ffad4d',
+        'dealsure-orange': '#E75812',
+        'dealsure-violet': '#360C35',
+        'dealsure-bg': '#F2ECEC',
       },
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        'poppins': ['Poppins', 'sans-serif'],
       },
       spacing: {
         '18': '4.5rem',

@@ -13,6 +13,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     
+    <!-- Google Fonts - Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -37,6 +42,42 @@
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* DealSure Custom Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        h1 {
+            font-size: 64px;
+            line-height: 1.1;
+            font-weight: 700;
+        }
+        
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .dealsure-orange {
+            color: #E75812;
+        }
+        
+        .dealsure-violet {
+            color: #360C35;
+        }
+        
+        .bg-dealsure-orange {
+            background-color: #E75812;
+        }
+        
+        .bg-dealsure-violet {
+            background-color: #360C35;
+        }
+        
+        .bg-dealsure-hero {
+            background-color: #F2ECEC;
         }
         
         .gradient-bg {

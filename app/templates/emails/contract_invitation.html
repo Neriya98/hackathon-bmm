@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealSure Contract Invitation</title>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .header img {
+            max-width: 150px;
+            height: auto;
+        }
+        .content {
+            padding: 30px 0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        h1 {
+            color: #360C35;
+            margin-top: 0;
+        }
+        h2 {
+            color: #E75812;
+        }
+        .button {
+            display: inline-block;
+            background-color: #E75812;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='DealSure Logo.png', _external=True) }}" alt="DealSure Logo">
+        </div>
+        
+        <div class="content">
+            <h1>Contract Invitation</h1>
+            <p>Hello,</p>
+            <p><strong>{{ sender.name }}</strong> has invited you to participate in a DealSure blockchain contract.</p>
+            
+            <div class="details">
+                <h2>{{ contract.title }}</h2>
+                <p><strong>Description:</strong> {{ contract.description or "No description provided" }}</p>
+                <p><strong>Contract Type:</strong> {{ contract.contract_type.value }}</p>
+                <p><strong>Amount:</strong> {{ contract.amount_sats | format_satoshis }} satoshis</p>
+                {% if invitation.message %}
+                <p><strong>Personal Message:</strong> {{ invitation.message }}</p>
+                {% endif %}
+            </div>
+            
+            <p>To view and accept this contract, please click the button below:</p>
+            <p style="text-align: center;">
+                <a href="{{ invitation_url }}" class="button">View Contract</a>
+            </p>
+            <p>This invitation will expire in 7 days. If you have any questions, please contact the contract creator directly.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message from DealSure.</p>
+            <p>© {{ now.year }} DealSure. All rights reserved.</p>
+            <p>If you did not expect this invitation, please ignore this email.</p>
+        </div>
+    </div>
+</body>
+</html>

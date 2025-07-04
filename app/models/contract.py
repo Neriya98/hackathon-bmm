@@ -18,6 +18,7 @@ class ContractStatus(Enum):
     DRAFT = "draft"              # Brouillon, en cours de création
     PENDING = "pending"          # En attente de signatures
     ACTIVE = "active"            # Actif, toutes signatures collectées
+    PAID = "paid"                # Paiement reçu
     FINALIZED = "finalized"      # Finalisé, transaction diffusée
     EXPIRED = "expired"          # Expiré
     CANCELLED = "cancelled"      # Annulé

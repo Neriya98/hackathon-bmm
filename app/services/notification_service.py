@@ -7,12 +7,14 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 try:
-    from flask import current_app
-    from app import db
+    from flask import current_app, render_template
+    from flask_mail import Message
+    from app import db, mail
 except ImportError:
     # Handle import error for testing
     current_app = None
     db = None
+    mail = None
 from app.models.user import User
 from app.models.contract import Contract
 from app.models.invitation import Invitation
@@ -384,6 +386,42 @@ class NotificationService:
             
         except Exception as e:
             logger.error(f"Error notifying contract parties: {e}")
+    
+    def send_invitation_email(self, invitation: 'Invitation', contract: 'Contract', sender: 'User') -> bool:
+        """Send an email invitation to participate in a contract"""
+        try:
+            if not current_app or not mail:
+                logger.error("Flask app context or mail not available for sending emails")
+                return False
+                
+            recipient_email = invitation.recipient_email
+            invitation_url = f"{current_app.config['FRONTEND_URL']}/contracts/{contract.public_id}/accept/{invitation.token}"
+            
+            # Create email message
+            msg = Message(
+                subject=f"You've been invited to a DealSure contract: {contract.title}",
+                recipients=[recipient_email],
+                sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'no-reply@dealsure.io')
+            )
+            
+            # Prepare email content
+            msg.html = render_template(
+                'emails/contract_invitation.html',
+                contract=contract,
+                invitation=invitation,
+                sender=sender,
+                invitation_url=invitation_url
+            )
+            
+            # Send the email
+            mail.send(msg)
+            
+            logger.info(f"Sent invitation email to {recipient_email} for contract {contract.public_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to send invitation email: {str(e)}")
+            return False
 
 
 # Singleton instance

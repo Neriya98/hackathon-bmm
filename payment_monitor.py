@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import create_app, db
-from app.models.contract import Contract
+from app.models.contract import Contract, ContractStatus
 from app.services.smart_contract_service import smart_contract_service
 from app.services.notification_service import notification_service
 
@@ -94,6 +94,12 @@ class PaymentMonitor:
             
             if payment_status and payment_status.get('payment_received'):
                 logger.info(f"Payment received for contract {contract.public_id}!")
+                
+                # Update contract status to paid
+                contract.payment_received = True
+                # Update the contract status from "await payment" to "paid"
+                contract.status = ContractStatus.PAID
+                db.session.commit()
                 
                 # Notify all parties
                 notification_service.notify_all_contract_parties(

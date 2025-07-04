@@ -44,20 +44,6 @@
                     
                     <div class="space-y-4">
                         <div>
-                            <label for="signer_name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input type="text" id="signer_name" name="signer_name" required
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
-                                   placeholder="Enter your full name">
-                        </div>
-                        
-                        <div>
-                            <label for="signature_date" class="block text-sm font-medium text-gray-700">Signature Date</label>
-                            <input type="datetime-local" id="signature_date" name="signature_date" required
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
-                            <p class="text-xs text-gray-500 mt-1">Current date and time is set by default, but you can change it if needed</p>
-                        </div>
-                        
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bitcoin Public Key Signature</label>
                             <div class="space-y-3">
                                 <div>
@@ -91,6 +77,20 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div>
+                            <label for="signature_date" class="block text-sm font-medium text-gray-700">Signature Date</label>
+                            <input type="datetime-local" id="signature_date" name="signature_date" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+                            <p class="text-xs text-gray-500 mt-1">Current date and time is set by default, but you can change it if needed</p>
+                        </div>
+                        
+                        <div>
+                            <label for="signer_name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input type="text" id="signer_name" name="signer_name" required
+                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                                   placeholder="Enter your full name">
                         </div>
                         
                         <!-- Terms Agreement -->

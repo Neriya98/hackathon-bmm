@@ -3,12 +3,20 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, ValidationError
 from datetime import datetime, timedelta
 from app.services.smart_contract_service import SmartContractService
+import logging
 
 from app import db, limiter
 from app.models.user import User
 from app.models.contract import Contract, ContractType, ContractStatus
 from app.models.invitation import Invitation
 from app.models.signature import Signature
+from app.services.notification_service import NotificationService
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
+# Create notification service instance
+notification_service = NotificationService()
 
 bp = Blueprint('contracts', __name__)
 
@@ -74,28 +82,38 @@ def create_contract():
         db.session.add(contract)
         db.session.flush()  # Pour obtenir l'ID
         
-        # Créer le PSBT via Rust (temporarily disabled)
-        # rust_result = securedeal_core.create_bitcoin_contract(
-        #     contract_type=data['contract_type'],
-        #     participants=data['participants'],
-        #     amount=data['amount_sats'],
-        #     timelock=int(timelock_timestamp.timestamp()) if timelock_timestamp else None,
-        #     network=data.get('network', 'signet')
-        # )
+        # Create the contract using the Rust blockchain service
+        service = SmartContractService()
         
-        # Temporary placeholder
-        rust_result = {
-            'psbt_base64': 'temporary_psbt_placeholder',
-            'script_pubkey': 'temporary_script_placeholder',
-            'address': 'tb1qtmp1234567890abcdef',
-            'policy': 'temporary_policy_placeholder'
+        # Prepare data for smart contract generation
+        contract_data = {
+            'type': data['contract_type'],
+            'participants': data['participants'],
+            'amount': data['amount_sats'],
+            'network': data.get('network', 'signet'),
         }
         
+        if timelock_timestamp:
+            contract_data['timelock'] = int(timelock_timestamp.timestamp())
+            
+        # Call the Rust blockchain service
+        smart_contract_result = service.create_smart_contract_from_data(contract_data)
+        
+        if not smart_contract_result:
+            # Fallback to placeholder if service fails
+            logger.warning("Blockchain service unavailable. Using placeholder address.")
+            smart_contract_result = {
+                'psbt_base64': 'temporary_psbt_placeholder',
+                'script_pubkey': 'temporary_script_placeholder',
+                'address': f'tb1q{user.public_id[:8]}contract{contract.id}',
+                'policy': 'temporary_policy_placeholder'
+            }
+        
         # Mettre à jour le contrat avec les données PSBT
-        contract.psbt_base64 = rust_result['psbt_base64']
-        contract.script_pubkey = rust_result['script_pubkey']
-        contract.address = rust_result['address']
-        contract.policy = rust_result['policy']
+        contract.psbt_base64 = smart_contract_result.get('psbt_base64', '')
+        contract.script_pubkey = smart_contract_result.get('script_pubkey', '')
+        contract.address = smart_contract_result.get('address', '')
+        contract.policy = smart_contract_result.get('policy', '')
         contract.status = ContractStatus.PENDING
         
         db.session.commit()
@@ -244,8 +262,8 @@ def invite_participant(contract_id):
         db.session.add(invitation)
         db.session.commit()
         
-        # TODO: Envoyer email d'invitation
-        # send_contract_invitation_email(invitation)
+        # Send invitation email
+        notification_service.send_invitation_email(invitation, contract, user)
         
         return jsonify({
             'message': 'Invitation sent successfully',
@@ -338,7 +356,6 @@ def sign_contract(contract_id):
         
         # Import smart contract service and notification service
         from app.services.smart_contract_service import signature_monitor
-        from app.services.notification_service import notification_service
         
         # Create signature notification for all parties
         signer_name = user.username or user.email
